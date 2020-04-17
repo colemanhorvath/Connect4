@@ -1,0 +1,16 @@
+### Starting build.
+# Target: test_mechanics.ml.depends, tags: { debug, extension:ml, file:test_mechanics.ml, ocaml, ocamldep, quiet }
+ocamlfind ocamldep -modules test_mechanics.ml > test_mechanics.ml.depends # cached
+# Target: game_mechanics.mli.depends, tags: { debug, extension:mli, file:game_mechanics.mli, ocaml, ocamldep, quiet }
+ocamlfind ocamldep -modules game_mechanics.mli > game_mechanics.mli.depends
+# Target: game_mechanics.cmi, tags: { byte, compile, debug, extension:mli, file:game_mechanics.mli, interf, ocaml, quiet }
+ocamlfind ocamlc -c -g -o game_mechanics.cmi game_mechanics.mli
+# Target: test_mechanics.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:test_mechanics.cmo, file:test_mechanics.ml, implem, ocaml, quiet }
+ocamlfind ocamlc -c -g -o test_mechanics.cmo test_mechanics.ml
+# Target: game_mechanics.ml.depends, tags: { debug, extension:ml, file:game_mechanics.ml, ocaml, ocamldep, quiet }
+ocamlfind ocamldep -modules game_mechanics.ml > game_mechanics.ml.depends
+# Target: game_mechanics.cmo, tags: { byte, compile, debug, extension:cmo, extension:ml, file:game_mechanics.cmo, file:game_mechanics.ml, implem, ocaml, quiet }
+ocamlfind ocamlc -c -g -o game_mechanics.cmo game_mechanics.ml
+# Target: test_mechanics.byte, tags: { byte, debug, dont_link_with, extension:byte, file:test_mechanics.byte, link, ocaml, program, quiet }
+ocamlfind ocamlc -linkpkg -g game_mechanics.cmo test_mechanics.cmo -o test_mechanics.byte
+# Compilation successful.
