@@ -46,6 +46,10 @@ val get_gameboard: t -> board
 (** [get_player_turn state] is the player who can make the next move *)
 val get_player_turn: t -> int
 
-(** [format] is a printing function to format the printing of pieces
+(** [format p] is a printing function to format the printing of pieces
     for debugging purposes *)
 val format: piece -> string
+
+(** [check_win state player col] is true if state has a win and 
+    false otherwise *)
+val check_win : t -> int -> int -> bool

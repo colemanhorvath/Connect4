@@ -16,6 +16,9 @@ let pp_list lst =
     in loop 0 "" lst
   in "[" ^ pp_elts lst ^ "]"
 
+(** [pp_list_list lst acc] pretty-prints list [lst], using pp_list
+    to pretty-print each element of [lst], and storing the resulting
+    printing string in acc. *)
 let rec pp_list_list lst acc = 
   match lst with 
   | [] -> "[ " ^ acc ^ " ]"
@@ -24,7 +27,7 @@ let rec pp_list_list lst acc =
 let start = start_game 5 7 2;;
 
 
-
+(** [make_move current_state col] makes a move adding a piece to col *)
 let make_move current_state col =
   let player_turn = get_player_turn current_state in 
   let piece = create_piece "normal" player_turn in 
@@ -33,11 +36,13 @@ let make_move current_state col =
   | Valid moved -> moved
   | Invalid -> Format.fprintf Format.std_formatter "invalid\n"; current_state
 
+(** [print_board state] prints the gameboard in state *)
 let print_board state = 
   Format.fprintf Format.std_formatter "%s\n" 
     (pp_list_list (get_gameboard state) "")
 
-
+(** [test_moves state move_lst] makes the moves in move_lst and 
+    prints the gameboard *)
 let rec test_moves state move_lst = 
   match move_lst with 
   | [] -> state
@@ -45,9 +50,62 @@ let rec test_moves state move_lst =
     print_board new_state; test_moves new_state xs
 
 
-let end_state = test_moves start [1;1;2;2;1;1;1;1;3;2]
+let end_state1 = test_moves start [1;1;2;2;1;1;1;1;3;2]
 let () = Format.fprintf Format.std_formatter "\n"
 
+let win = check_win end_state1 1 2
+
+let () = Format.fprintf Format.std_formatter "%B\n" win
+
+
+let col_win = test_moves start [1;2;1;2;1;2;1]
+let () = Format.fprintf Format.std_formatter "\n"
+
+let win = check_win col_win 1 1
+let () = assert win
+
+let () = Format.fprintf Format.std_formatter "%B\n" win
+
+let col_win = test_moves start [3;4;3;7;3;2;3]
+let () = Format.fprintf Format.std_formatter "\n"
+
+let win = check_win col_win 1 3
+let () = assert win
+
+let () = Format.fprintf Format.std_formatter "%B\n" win
+
+
+let row_win = test_moves start [2;2;3;3;4;4;5]
+let () = Format.fprintf Format.std_formatter "\n"
+
+let win = check_win row_win 1 5
+let () = assert win
+
+let () = Format.fprintf Format.std_formatter "%B\n" win
+
+let row_win = test_moves start [1;7;2;6;3;5;4]
+let () = Format.fprintf Format.std_formatter "\n"
+
+let win = check_win row_win 1 4
+let () = assert win
+
+let () = Format.fprintf Format.std_formatter "%B\n" win
+
+let row_win = test_moves start [4;4;5;5;3;3;6]
+let () = Format.fprintf Format.std_formatter "\n"
+
+let win = check_win row_win 1 6
+let () = assert win
+
+let () = Format.fprintf Format.std_formatter "%B\n" win
+
+
+let no_win = test_moves start [3;4;5;6;1;2]
+let () = Format.fprintf Format.std_formatter "\n"
+
+let win = check_win no_win 2 2
+
+let () = Format.fprintf Format.std_formatter "%B\n" win
 
 (*
 let new_move = make_move new_move 1
