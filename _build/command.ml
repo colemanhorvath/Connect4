@@ -16,7 +16,7 @@ let rec parse_helper inputs obj_phrase =
       parse_helper t (h::obj_phrase)
 
 let parse input = 
-  let words = String.split_on_char ' ' input in 
+  let words = String.split_on_char ' ' (String.lowercase_ascii input) in 
   match words with 
   | [] -> raise Empty
   | h::t ->
