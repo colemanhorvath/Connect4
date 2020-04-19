@@ -1,4 +1,4 @@
-(** The type the game pieces. *)
+(** The type of the game pieces. *)
 type piece
 
 (** The type representing the board for the game.
@@ -21,7 +21,7 @@ type piece
 *)
 type board = piece list list
 
-(** The type the game state. *)
+(** The type of the game state. *)
 type t 
 
 (** The type representing the result of an attempted move. *)

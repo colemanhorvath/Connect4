@@ -1,4 +1,4 @@
-MODULES=game_mechanics
+MODULES=game_mechanics command
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)

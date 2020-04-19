@@ -1,0 +1,27 @@
+open OUnit2
+open Command
+
+let make_parse_test
+    (name: string)
+    (input: string)
+    (expected_output: command) = 
+  name >:: (fun _ ->
+      let com = try parse input with
+        | Empty -> assert_equal expected_output (Save ["emp ty"])
+        | Malformed -> assert_equal expected_output (Save ["mal formed"]) in  
+      assert_equal com expected_output)
+
+let parse_tests = [
+  make_parse_test "parse print" "print" Print;
+  make_parse_test "parse save test.json" "save test.json" (Save ["test.json"]);
+  make_parse_test "parse place 5" "place 5" (Place ["5"]);
+  make_parse_test "parse load test.json" "load test.json" (Load ["test.json"]);
+  make_parse_test "parse print something" "print something" Print;
+  make_parse_test "parse save test dot json" "save test dot json" 
+    (Save ["test"; "dot"; "json"]);
+  make_parse_test "parse save" "save" (Save []);
+  make_parse_test "parse spaced out command" "  save   a     thing"
+    (Save ["a"; "thing"]);
+  make_parse_test "parse empty string" "" (Save ["emp ty"]);
+  make_parse_test "parse potato" "potato" (Save ["mal formed"])
+]
