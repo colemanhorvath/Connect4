@@ -53,3 +53,7 @@ val format: piece -> string
 (** [check_win state player col] is true if state has a win and 
     false otherwise *)
 val check_win : t -> int -> int -> bool
+
+(** [check_draw state ] is true if the game board is full and nobody has won and 
+    false otherwise *)
+val check_draw : t -> bool

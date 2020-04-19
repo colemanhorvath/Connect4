@@ -265,6 +265,13 @@ let win = check_win no_win 1 7
 let () = assert (not win)
 let () = Format.fprintf Format.std_formatter "%B\n\n" win
 
+let no_win = test_moves start [4;4;3;5;2;1;4;3;5;2;1;3;4;3;5;3;4;4;6;2;2;2;1;1;2;3;5;5;5;1;1;7;6;6;6;6;7;6;7;7;7;7]
+let win = check_win no_win 2 7
+let () = assert (not win)
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+let draw = check_draw no_win
+let () = Format.fprintf Format.std_formatter "%B\n\n" draw
+
 
 (*
 let new_move = make_move new_move 1

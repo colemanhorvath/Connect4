@@ -169,7 +169,8 @@ let check_win state player col =
             check_diagonal_rl_match board (row + start) player 
               (col - start) 0 0 7 state.cols state.rows
 
-
+let check_draw state =
+  state.total_moves = (state.cols * state.rows)
 
 (*
           Format.fprintf Format.std_formatter "c:%d \n" col;
