@@ -66,6 +66,26 @@ let win = check_win col_win 1 3
 let () = assert win
 let () = Format.fprintf Format.std_formatter "%B\n\n" win
 
+let col_win = test_moves start [4;4;3;5;5;2;2;4;4;2;6;5;5;7;7;2;6;1;3;2;3;4;3]
+let win = check_win col_win 1 3
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let col_win = test_moves start [4;4;3;5;2;5;3;5;4;6;4;1;2;7;6;7;1;6;4;5]
+let win = check_win col_win 2 5
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let col_win = test_moves start [4;4;3;6;1;2;4;5;7;4;4;7;6;4;5;5;5;6;3;7;2;6;3;1;3]
+let win = check_win col_win 1 3
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let col_win = test_moves start [4;4;5;4;7;4;1;4]
+let win = check_win col_win 2 4
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
 
 let row_win = test_moves start [2;2;3;3;4;4;5]
 let win = check_win row_win 1 5
@@ -79,6 +99,41 @@ let () = Format.fprintf Format.std_formatter "%B\n\n" win
 
 let row_win = test_moves start [4;4;5;5;3;3;6]
 let win = check_win row_win 1 6
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let row_win = test_moves start [3;4;3;5;4;6;5;3;6]
+let win = check_win row_win 1 6
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let row_win = test_moves start [4;3;5;4;6;3;7]
+let win = check_win row_win 1 7
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let row_win = test_moves start [4;4;3;5;7;5;2;3;1]
+let win = check_win row_win 1 1
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let row_win = test_moves start [4;4;3;5;1;3;2]
+let win = check_win row_win 1 2
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let row_win = test_moves start [4;4;5;3;6;7;6;2;2;1;2;1;4;4;1;3;4;1;1;1;3]
+let win = check_win row_win 1 3
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let row_win = test_moves start [4;4;3;6;7;7;5;2;3;5;1;6]
+let win = check_win row_win 2 6
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let row_win = test_moves start [4;4;7;5;5;3;6;5;4;4;7;6;2;3;1;4;6;2;6;1]
+let win = check_win row_win 2 1
 let () = assert win
 let () = Format.fprintf Format.std_formatter "%B\n\n" win
 
@@ -108,6 +163,26 @@ let win = check_win lr_diag_win 1 5
 let () = assert win
 let () = Format.fprintf Format.std_formatter "%B\n\n" win
 
+let lr_diag_win = test_moves start [3;4;5;6;4;5;3;4;3;3]
+let win = check_win lr_diag_win 2 3
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let lr_diag_win = test_moves start [4;4;3;5;2;1;4;3;5;2;1;4;7;3]
+let win = check_win lr_diag_win 2 3
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let lr_diag_win = test_moves start [4;4;3;5;2;1;4;3;5;2;1;4;3;5;2;1;3;3;2;2;4]
+let win = check_win lr_diag_win 1 4
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let lr_diag_win = test_moves start [4;4;3;7;4;5;6;6;5;7;2;1;3;2;1;5;1;1;5]
+let win = check_win lr_diag_win 1 5
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
 
 let rl_diag_win = test_moves start [1;1;1;1;2;4;2;2;3;3]
 let win = check_win rl_diag_win 2 3
@@ -129,6 +204,31 @@ let win = check_win rl_diag_win 1 3
 let () = assert win
 let () = Format.fprintf Format.std_formatter "%B\n\n" win
 
+let rl_diag_win = test_moves start [2;4;5;3;4;5;4;3;3;2;3;2;4;4;2]
+let win = check_win rl_diag_win 1 2
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let rl_diag_win = test_moves start [4;4;3;5;2;1;4;3;5;2;1;3;4;3;1;4;3;2;2;4;5;1;5;5;5;3;6;6;6;2;2]
+let win = check_win rl_diag_win 1 2
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let rl_diag_win = test_moves start [4;4;3;5;2;1;4;3;5;2;1;3;4;3;3;7;3;6;5;6;1;7;6;2;2;2;2]
+let win = check_win rl_diag_win 1 2
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let rl_diag_win = test_moves start [4;4;3;1;5;4;4;6;1;6;1;2;5;6;4;4;6;6;1;2;3;5;2]
+let win = check_win rl_diag_win 1 2
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let rl_diag_win = test_moves start [4;4;4;4;3;7;1;2;7;1;3;5;4;3;3;2;5;5;3;7;3;5;6]
+let win = check_win rl_diag_win 1 6
+let () = assert win
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
 
 let no_win = test_moves start [3;4;5;6;1;2]
 let win = check_win no_win 2 2
@@ -144,6 +244,27 @@ let no_win = test_moves start [3;2;1;3;3;2;1;5;6;2;7;3;1;5;6]
 let win = check_win no_win 1 6
 let () = assert (not win)
 let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let no_win = test_moves start [4;4;4;1;1;5;3;4;2;7;6;2]
+let win = check_win no_win 2 2
+let () = assert (not win)
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let no_win = test_moves start [4;4;1;6;2;4;2;5;2;2;2;4;2;7;6;3]
+let win = check_win no_win 2 3
+let () = assert (not win)
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let no_win = test_moves start [4;4;4;1;7;1;6;5;3;4;1;2;7;4;2;5]
+let win = check_win no_win 2 5
+let () = assert (not win)
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
+let no_win = test_moves start [4;4;2;5;2;3;6;4;4;6;5;2;7]
+let win = check_win no_win 1 7
+let () = assert (not win)
+let () = Format.fprintf Format.std_formatter "%B\n\n" win
+
 
 (*
 let new_move = make_move new_move 1
