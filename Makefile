@@ -3,6 +3,7 @@ OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
 TEST=test_mechanics.byte
+TESTCOMMAND=test_command.byte
 MAIN=main.byte
 OCAMLBUILD=ocamlbuild -use-ocamlfind
 
@@ -15,7 +16,8 @@ build:
 test_mechanics:
 	$(OCAMLBUILD) -tag 'debug' $(TEST) && ./$(TEST)
 
-
+test_command:
+	$(OCAMLBUILD) -tag 'debug' $(TESTCOMMAND) && ./$(TESTCOMMAND)
 
 #play:
 #	$(OCAMLBUILD) $(MAIN) && ./$(MAIN)

@@ -7,8 +7,8 @@ let make_parse_test
     (expected_output: command) = 
   name >:: (fun _ ->
       let com = try parse input with
-        | Empty -> assert_equal expected_output (Save ["emp ty"])
-        | Malformed -> assert_equal expected_output (Save ["mal formed"]) in  
+        | Empty -> Save ["emp ty"]
+        | Malformed -> Save ["mal formed"] in  
       assert_equal com expected_output)
 
 let parse_tests = [
@@ -25,3 +25,10 @@ let parse_tests = [
   make_parse_test "parse empty string" "" (Save ["emp ty"]);
   make_parse_test "parse potato" "potato" (Save ["mal formed"])
 ]
+
+let suite =
+  "test suite for command"  >::: List.flatten [
+    parse_tests
+  ]
+
+let _ = run_test_tt_main suite
