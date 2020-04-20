@@ -16,10 +16,12 @@ let rec parse_helper inputs obj_phrase =
       parse_helper t (h::obj_phrase)
 
 let parse input = 
-  let words = String.split_on_char ' ' (String.lowercase_ascii input) in 
+  let words = String.split_on_char ' ' 
+      (String.lowercase_ascii (String.trim input)) in 
   match words with 
   | [] -> raise Empty
   | h::t ->
+    if h = "" then raise Empty else 
     if h = "print" then Print else
     if h = "place" then Place (parse_helper t []) else
     if h = "save" then Save (parse_helper t []) else

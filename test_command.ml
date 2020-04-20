@@ -1,6 +1,11 @@
 open OUnit2
 open Command
 
+let rec print_st_list lst = 
+  match lst with
+  | [] -> ()
+  | h::t -> print_string h; print_newline(); print_st_list t; ()
+
 let make_parse_test
     (name: string)
     (input: string)
@@ -8,7 +13,7 @@ let make_parse_test
   name >:: (fun _ ->
       let com = try parse input with
         | Empty -> Save ["emp ty"]
-        | Malformed -> Save ["mal formed"] in  
+        | Malformed -> Save ["mal formed"] in
       assert_equal com expected_output)
 
 let parse_tests = [

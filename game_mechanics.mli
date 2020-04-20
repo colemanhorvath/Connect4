@@ -1,5 +1,8 @@
 (** The type of the game pieces. *)
-type piece
+type piece = 
+  | None
+  | Normal of int 
+  | Bomb of int
 
 (** The type representing the board for the game.
     The board is represented like so 
@@ -27,6 +30,12 @@ type t
 (** The type representing the result of an attempted move. *)
 type move_result =  Valid of t | Invalid
 
+(** [load_game players rows cols board turn moves] is the state of a game with
+    a [rows] x [cols] board currently on the players turn indicated by [turn]
+    where [moves] have been taken and they have resulted in the pieces in 
+    [board]. *)
+val load_game: int -> int -> int -> board -> int -> int -> t
+
 (** [start_game rows cols players] is the initial state of the game
     with a [rows] x [cols] board and [players] number of players. *)
 val start_game: int -> int -> int -> t
@@ -49,6 +58,9 @@ val get_player_turn: t -> int
 (** [format p] is a printing function to format the printing of pieces
     for debugging purposes *)
 val format: piece -> string
+
+(** [to_json_string st] is the json string representation of [st]. *)
+val to_json_string: t -> string 
 
 (** [check_win state player col] is true if state has a win and 
     false otherwise *)

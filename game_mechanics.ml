@@ -24,15 +24,17 @@ let rec board_helper col_counter acc =
 let create_board cols = 
   board_helper (cols - 1) [[]]
 
+let load_game players rows cols board turn moves = {
+  num_players = players;
+  rows = rows;
+  cols = cols; 
+  gameboard = board;
+  player_turn = turn;
+  total_moves = moves;
+}
+
 let start_game rows cols players = 
-  {
-    num_players = players;
-    rows = rows;
-    cols = cols; 
-    gameboard = create_board cols;
-    player_turn = 0;
-    total_moves = 0;
-  }
+  load_game players rows cols (create_board cols) 0 0
 
 let create_piece piece_type player = 
   match piece_type with 
@@ -71,6 +73,40 @@ let format p =
   match p with 
   | Normal x -> "\"Normal " ^ (string_of_int x) ^ "\""
   | _ -> "\"Other " ^ "error" ^ "\""
+
+let string_of_piece p = 
+  match p with 
+  | None -> "{\"type\":\"None\",\"player\":\"-1\"}"
+  | Normal p ->
+    let player = string_of_int p in 
+    String.concat "" ["{\"type\":\"Normal\",\"player\":\""; player; "\"}"]
+  | Bomb p -> 
+    let player = string_of_int p in 
+    String.concat "" ["{\"type\":\"Bomb\",\"player\":\""; player; "\"}"]
+
+let string_of_col col = 
+  if col = [] then "" else
+    String.concat "," (List.map string_of_piece col)
+
+let string_of_board board = 
+  let body = String.concat "],[" (List.map string_of_col board) in 
+  String.concat "" ["["; body; "]"]
+
+let to_json_string st = 
+  let np_str = string_of_int st.num_players in 
+  let row_str = string_of_int st.rows in 
+  let col_str = string_of_int st.cols in 
+  let board_str = string_of_board st.gameboard in 
+  let turn_str = string_of_int st.player_turn in 
+  let moves_str = string_of_int st.total_moves in 
+  String.concat "," [
+    String.concat "" ["{\"num_players\":\""; np_str; "\""];
+    String.concat "" ["\"rows\":\""; row_str; "\""];
+    String.concat "" ["\"cols\":\""; col_str; "\""];
+    String.concat "" ["\"gameboard\":\""; board_str; "\""];
+    String.concat "" ["\"player_turn\":\""; turn_str; "\""];
+    String.concat "" ["\"total_moves\":\""; moves_str; "\"}"]
+  ]
 
 let get_piece_player p= 
   match p with 
