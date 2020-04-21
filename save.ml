@@ -18,8 +18,7 @@ let save st filename =
        Save_Success filename) with
   | _ -> Save_Failure filename 
 
-
-
+(** [to_piece json] is the game piece encoded in [json] *)
 let to_piece json = 
   let piece_type = json |> member "type" |> to_string in 
   let player = json |> member "player" |> to_string |> int_of_string in 
@@ -27,10 +26,12 @@ let to_piece json =
   if piece_type = "Bomb" then (Game_mechanics.Bomb player) else
     Game_mechanics.None
 
+(** [map_cols json] is the list of pieces in [json] which encodes one column
+    of a gameboard]*)
 let map_cols json = 
   json |> to_list |> List.map to_piece 
 
-
+(** [from_json json] is the game state as is encoded in [json].*)
 let from_json json = 
   let num_players = json |> member "num_players" 
                     |> to_string |> int_of_string in 

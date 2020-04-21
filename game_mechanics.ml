@@ -74,6 +74,7 @@ let format p =
   | Normal x -> "\"Normal " ^ (string_of_int x) ^ "\""
   | _ -> "\"Other " ^ "error" ^ "\""
 
+(** [string_of_piece p] is the JSON string representation of piece [p]. *)
 let string_of_piece p = 
   match p with 
   | None -> "{\"type\":\"None\",\"player\":\"-1\"}"
@@ -84,13 +85,16 @@ let string_of_piece p =
     let player = string_of_int p in 
     String.concat "" ["{\"type\":\"Bomb\",\"player\":\""; player; "\"}"]
 
+(** [string_of_col col] is the JSON string representation of piece list [col].*)
 let string_of_col col = 
   if col = [] then "" else
     String.concat "," (List.map string_of_piece col)
 
+(** [string_of_board board] is the JSON string representation of 
+    gameboard [board]. *)
 let string_of_board board = 
   let body = String.concat "],[" (List.map string_of_col board) in 
-  String.concat "" ["["; body; "]"]
+  String.concat "" ["[["; body; "]]"]
 
 let to_json_string st = 
   let np_str = string_of_int st.num_players in 
@@ -103,7 +107,7 @@ let to_json_string st =
     String.concat "" ["{\"num_players\":\""; np_str; "\""];
     String.concat "" ["\"rows\":\""; row_str; "\""];
     String.concat "" ["\"cols\":\""; col_str; "\""];
-    String.concat "" ["\"gameboard\":\""; board_str; "\""];
+    String.concat "" ["\"gameboard\":"; board_str];
     String.concat "" ["\"player_turn\":\""; turn_str; "\""];
     String.concat "" ["\"total_moves\":\""; moves_str; "\"}"]
   ]

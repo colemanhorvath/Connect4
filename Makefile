@@ -1,9 +1,10 @@
-MODULES=game_mechanics command
+MODULES=game_mechanics command save
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)
 TEST=test_mechanics.byte
 TESTCOMMAND=test_command.byte
+TESTSAVE=test_save.byte
 MAIN=main.byte
 OCAMLBUILD=ocamlbuild -use-ocamlfind
 
@@ -18,6 +19,9 @@ test_mechanics:
 
 test_command:
 	$(OCAMLBUILD) -tag 'debug' $(TESTCOMMAND) && ./$(TESTCOMMAND)
+
+test_save:
+	$(OCAMLBUILD) -tag 'debug' $(TESTSAVE) && ./$(TESTSAVE)
 
 #play:
 #	$(OCAMLBUILD) $(MAIN) && ./$(MAIN)

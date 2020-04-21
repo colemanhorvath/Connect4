@@ -1,0 +1,18 @@
+{
+  "num_players": "2",
+  "rows": "9",
+  "cols": "9",
+  "gameboard": [
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    [],
+    []
+  ],
+  "player_turn": "0",
+  "total_moves": "0"
+}
