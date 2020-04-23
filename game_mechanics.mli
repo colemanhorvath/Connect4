@@ -4,6 +4,12 @@ type piece =
   | Normal of int 
   | Bomb of int
 
+(** The type of game status (win, draw, or still being played). *)
+type status = 
+  | Play
+  | Draw
+  | Win of int
+
 (** The type representing the board for the game.
     The board is represented like so 
     a board with 5 rows and 7 cols would have a list with 7 entries,
@@ -40,8 +46,8 @@ val load_game: int -> int -> int -> board -> int -> int -> t
     with a [rows] x [cols] board and [players] number of players. *)
 val start_game: int -> int -> int -> t
 
-(** [create_piece piece_type player] creates an instance of type piece 
-    with piece_type player *)
+(** [create_piece piece_type player] creates an instance of type piece for
+    [player] of type [piece_type] *)
 val create_piece: string -> int -> piece
 
 (** [move state col piece] is [Valid new_state] if the placing [piece] in
@@ -62,10 +68,15 @@ val format: piece -> string
 (** [to_json_string st] is the json string representation of [st]. *)
 val to_json_string: t -> string 
 
-(** [check_win state player col] is true if state has a win and 
-    false otherwise *)
+(** [check_win state player col] is true if [state] has a win from player 
+    [player] from playing in column [col] and false otherwise *)
 val check_win : t -> int -> int -> bool
 
-(** [check_draw state ] is true if the game board is full and nobody has won and 
+(** [check_draw state] is true if the game board is full and nobody has won and 
     false otherwise *)
 val check_draw : t -> bool
+
+(** [check_status state player col] is a [status] representing if the game has 
+    been won by [player] after placing a piece in column [col], if the game 
+    has resulted in a draw, or if the game is still being played. *)
+val check_status: t -> int -> int -> status

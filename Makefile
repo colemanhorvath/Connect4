@@ -23,8 +23,8 @@ test_command:
 test_save:
 	$(OCAMLBUILD) -tag 'debug' $(TESTSAVE) && ./$(TESTSAVE)
 
-#play:
-#	$(OCAMLBUILD) $(MAIN) && ./$(MAIN)
+play:
+	$(OCAMLBUILD) $(MAIN) && ./$(MAIN)
 
 # check:
 # 	bash checkenv.sh && bash checktypes.sh

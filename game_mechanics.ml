@@ -1,7 +1,12 @@
 type piece =
-  |None
-  |Normal of int
-  |Bomb of int 
+  | None
+  | Normal of int
+  | Bomb of int 
+
+type status = 
+  | Play
+  | Draw
+  | Win of int
 
 type board = piece list list
 
@@ -211,6 +216,11 @@ let check_win state player col =
 
 let check_draw state =
   state.total_moves = (state.cols * state.rows)
+
+(* TODO: add tests, maybe take draw/win out of mli *)
+let check_status state player col =
+  if check_win state state.player_turn col then Win state.player_turn else
+  if check_draw state then Draw else Play
 
 (*
           Format.fprintf Format.std_formatter "c:%d \n" col;

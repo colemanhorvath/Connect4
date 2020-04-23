@@ -18,6 +18,7 @@ let make_parse_test
 
 let parse_tests = [
   make_parse_test "parse print" "print" Print;
+  make_parse_test "parse start" "start" Start;
   make_parse_test "parse save test.json" "save test.json" (Save ["test.json"]);
   make_parse_test "parse place 5" "place 5" (Place ["5"]);
   make_parse_test "parse load test.json" "load test.json" (Load ["test.json"]);

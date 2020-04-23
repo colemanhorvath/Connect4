@@ -5,6 +5,7 @@ type object_phrase = string list
 (** Type [command] represents the command the user has supplied as input.*)
 type command = 
   | Print
+  | Start
   | Place of object_phrase
   | Save of object_phrase
   | Load of object_phrase
