@@ -62,10 +62,12 @@ let save_handler state object_phrase =
 let check_win_condition state player col = 
   match (Game_mechanics.check_status state player col) with
   | Game_mechanics.Win win_player -> 
+    Display.print_board state;
     Display.pretty_print_string(String.concat "" ["Congrats Player "; 
                                     string_of_int win_player; ", you won!"]);
     quit_game ()
   | Game_mechanics.Draw ->
+    Display.print_board state;
     Display.pretty_print_string("Game over! There is a Draw.");
     quit_game ()
   | Game_mechanics.Play -> ()
@@ -87,8 +89,7 @@ let place_piece state object_phrase player =
     | Game_mechanics.Invalid -> raise (Failure "")
   with
   | Failure _ -> 
-    Display.pretty_print_string("Invalid empty column number provided. \
-                                Please try again.");
+    Display.pretty_print_string("Invalid column number. Please try again.");
     state
 
 (** [rec play_game state] recursively asks for player input one step at a time 
