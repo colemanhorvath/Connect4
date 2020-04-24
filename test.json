@@ -6,29 +6,29 @@
     [
       {
         "type": "Normal",
-        "player": "0"
+        "player": "1"
       }
     ],
     [
       {
         "type": "Normal",
-        "player": "0"
+        "player": "1"
       },
       {
         "type": "Normal",
-        "player": "1"
+        "player": "2"
+      }
+    ],
+    [
+      {
+        "type": "Normal",
+        "player": "2"
       }
     ],
     [
       {
         "type": "Normal",
         "player": "1"
-      }
-    ],
-    [
-      {
-        "type": "Normal",
-        "player": "0"
       }
     ],
     [],

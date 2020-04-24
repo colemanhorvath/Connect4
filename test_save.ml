@@ -45,10 +45,10 @@ let make_save_test
 let new_game_standard = Game_mechanics.start_game 7 7 2
 let new_game_9x9 = Game_mechanics.start_game 9 9 2
 let test_game_board = [
-  [Normal 0]; 
-  [Normal 0; Normal 1]; 
   [Normal 1]; 
-  [Normal 0];
+  [Normal 1; Normal 2]; 
+  [Normal 2]; 
+  [Normal 1];
   [];
   [];
   []
@@ -58,7 +58,7 @@ let blank_game = load_game 0 0 0 [] 0 0
 
 let new_game_standard_string = "{\"num_players\":\"2\",\"rows\":\"7\",\"cols\":\"7\",\"gameboard\":[[],[],[],[],[],[],[]],\"player_turn\":\"0\",\"total_moves\":\"0\"}"
 let new_game_9x9_string = "{\"num_players\":\"2\",\"rows\":\"9\",\"cols\":\"9\",\"gameboard\":[[],[],[],[],[],[],[],[],[]],\"player_turn\":\"0\",\"total_moves\":\"0\"}"
-let test_game_string = "{\"num_players\":\"2\",\"rows\":\"7\",\"cols\":\"7\",\"gameboard\":[[{\"type\":\"Normal\",\"player\":\"0\"}],[{\"type\":\"Normal\",\"player\":\"0\"},{\"type\":\"Normal\",\"player\":\"1\"}],[{\"type\":\"Normal\",\"player\":\"1\"}],[{\"type\":\"Normal\",\"player\":\"0\"}],[],[],[]],\"player_turn\":\"1\",\"total_moves\":\"5\"}"
+let test_game_string = "{\"num_players\":\"2\",\"rows\":\"7\",\"cols\":\"7\",\"gameboard\":[[{\"type\":\"Normal\",\"player\":\"1\"}],[{\"type\":\"Normal\",\"player\":\"1\"},{\"type\":\"Normal\",\"player\":\"2\"}],[{\"type\":\"Normal\",\"player\":\"2\"}],[{\"type\":\"Normal\",\"player\":\"1\"}],[],[],[]],\"player_turn\":\"1\",\"total_moves\":\"5\"}"
 
 let load_tests = [
   make_load_test "load a new standard game" "new_game_standard.json" 
