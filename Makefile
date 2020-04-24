@@ -27,7 +27,7 @@ play:
 	$(OCAMLBUILD) $(MAIN) && ./$(MAIN)
 
 zip:
-	zip connect4.zip *.ml* *.json *.txt _tags Makefile
+	zip connect4.zip *.ml* test*.json INSTALL.txt _tags Makefile
 
 # check:
 # 	bash checkenv.sh && bash checktypes.sh
