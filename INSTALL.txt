@@ -1,0 +1,5 @@
+To play our Connect 4 game:
+
+First do make build
+Then do make play
+	-If you need more help, you can can always type “help” when playing our game 
