@@ -8,8 +8,10 @@ let print_help () =
   print_endline("Here are the possible commands");
   print_endline("[help] - displays list of possible commands");
   print_endline("[print] - pretty prints the current board");
-  print_endline("[place column] - places a piece on the board at column, starting at column 1");
-  print_endline("[save filepath] - saves a json file of the current game state to filepath")
+  print_endline("[place column] - places a piece on the board at column, \
+                 starting at column 1");
+  print_endline("[save filepath] - saves a json file of the current game \
+                 state to filepath")
 
 (** [start_game] starts a basic game of size 7x7 with 2 players. *)
 let start_game = 
@@ -20,9 +22,9 @@ let start_game =
     [object_phrase].
     Raises [Failure str] if not a valid int or object_phrase is empty. *)
 let col_from_phrase object_phrase = 
-    match object_phrase with 
-    | [] -> raise (Failure "")
-    | h::_ -> int_of_string h
+  match object_phrase with 
+  | [] -> raise (Failure "")
+  | h::_ -> int_of_string h
 
 (** [load_from_phrase object_phrase] is the load_result from loading in the
     file present in [object_phrase].
@@ -61,7 +63,7 @@ let save_handler state object_phrase =
     true
   | Save.Save_Failure str -> 
     print_endline(String.concat "" ["Game failed to save to file "; str; 
-      ", please try again."]);
+                                    ", please try again."]);
     false 
 
 (** [check_win_condition state player col] checks to see if a game was won by
@@ -71,7 +73,7 @@ let check_win_condition state player col =
   match (Game_mechanics.check_status state player col) with
   | Game_mechanics.Win win_player -> 
     print_endline(String.concat "" ["Congrats Player "; 
-      string_of_int win_player; ", you won!"]);
+                                    string_of_int win_player; ", you won!"]);
     quit_game ()
   | Game_mechanics.Draw ->
     print_endline("Game over! There is a Draw.");
@@ -94,9 +96,9 @@ let place_piece state object_phrase player =
       new_state
     | Game_mechanics.Invalid -> raise (Failure "")
   with
-    | Failure _ -> 
-      print_endline("Invalid empty column number provided. Please try again.");
-      state
+  | Failure _ -> 
+    print_endline("Invalid empty column number provided. Please try again.");
+    state
 
 (** [rec play_game state] recursively asks for player input one step at a time 
     and handles all possible commands after a game has been started. This 
@@ -104,9 +106,12 @@ let place_piece state object_phrase player =
     malformed, an explanation is printed and another command is prompted for. *)
 let rec play_game state = 
   let curr_player = Game_mechanics.get_player_turn state in
-  print_endline(String.concat "" ["Player "; string_of_int curr_player; ", your move."]);
+  print_endline(String.concat "" 
+                  ["Player "; string_of_int curr_player; ", your move."]);
 
-  let command = (read_line (print_endline "Enter a command (type \"help\" if you need it)")) in
+  let command = 
+    (read_line (print_endline "Enter a command (type \"help\" if you need \
+                               it)")) in
   try
     match Command.parse command with 
     | Command.Help ->
@@ -123,18 +128,21 @@ let rec play_game state =
       play_game new_state
     | _ -> raise Command.Malformed
   with
-    | Command.Empty -> 
-      print_endline "Empty command given. Please try again.";
-      play_game state
-    | Command.Malformed ->
-      print_endline("Invalid command provided. Please try again.");
-      play_game state
+  | Command.Empty -> 
+    print_endline "Empty command given. Please try again.";
+    play_game state
+  | Command.Malformed ->
+    print_endline("Invalid command provided. Please try again.");
+    play_game state
 
 (** [rec game_setup ()] recursively asks for player input to either [start] the
     game or [load] a game file and play. If a command is empty, malformed, or a
     failure, an explanation is printed and another command is prompted for. *)
 let rec game_setup () = 
-  let command = (read_line (print_endline "Please type \"start\" to start the game, or \"load [filename]\" to load a previously saved game.")) in
+  let command = 
+    (read_line (print_endline "Please type \"start\" to start the game, or \
+                               \"load [filename]\" to load a previously saved \
+                               game.")) in
   try
     match Command.parse command with 
     | Command.Start -> 
@@ -147,16 +155,17 @@ let rec game_setup () =
       play_game game_state
     | _ -> raise Command.Malformed
   with
-    | Command.Empty -> 
-      print_endline "Empty command given. Please try again.";
-      game_setup ()
-    | Command.Malformed -> 
-      print_endline "Malformed command given. Please try again.";
-      game_setup ()
-    | Failure str -> 
-      print_endline(String.concat "" 
-        ["Game failed to load at file "; str; ", please try again."]);
-      game_setup ()
+  | Command.Empty -> 
+    print_endline "Empty command given. Please try again.";
+    game_setup ()
+  | Command.Malformed -> 
+    print_endline "Malformed command given. Please try again.";
+    game_setup ()
+  | Failure str -> 
+    print_endline(String.concat "" 
+                    ["Game failed to load at file "; str; 
+                     ", please try again."]);
+    game_setup ()
 
 (** [main ()] prints a welcome message and runs the game setup. *)
 let main () =

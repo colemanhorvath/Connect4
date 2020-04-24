@@ -25,7 +25,7 @@ let rec find_piece row_index curr_index col =
       if curr_index != row_index then find_piece row_index (curr_index-1) t
       else get_string_from_piece h
   with
-    | InternalException -> print_endline("Internal exception reached."); ""
+  | InternalException -> print_endline("Internal exception reached."); ""
 
 (** [rec row_string board row_index] is recursively the string representation 
     of a single row at [row_index] of [board]. *)
@@ -41,7 +41,7 @@ let rec row_string board row_index =
       String.concat " " ["."; row_string t row_index] 
     else 
       String.concat " " [find_piece row_index num_rows (List.rev col); 
-        row_string t row_index]
+                         row_string t row_index]
 
 (** [rec board_string board row_index] is recursively the string 
     representation of the game [board] with initial [row_index] of the 
@@ -50,7 +50,7 @@ let rec board_string board row_index =
   match row_index with
   | 0 -> ""
   | x -> String.concat "\n" [board_string board (row_index-1); 
-    row_string board row_index]
+                             row_string board row_index]
 
 let print_board state = 
   let board = Game_mechanics.get_gameboard state in
