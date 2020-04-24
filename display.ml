@@ -1,3 +1,5 @@
+(** Represents an exception that should never occur if the code works as 
+expected. *)
 exception InternalException
 
 (** [get_string_from_player player] is the string character that represents 
@@ -67,3 +69,25 @@ let print_board state =
   board_string board num_rows;
   print_newline ();
   print_newline ()
+
+let print_start_turn state =
+  let curr_player = Game_mechanics.get_player_turn state in
+  print_board state;
+  print_endline(String.concat "" 
+                  ["Player "; string_of_int curr_player; ", your move."])
+
+let print_help () =
+  print_newline ();
+  print_endline("Here are the possible commands");
+  print_endline("[help] - displays list of possible commands");
+  print_endline("[print] - pretty prints the current board");
+  print_endline("[place column] - places a piece on the board at column, \
+                 starting at column 1");
+  print_endline("[save filepath] - saves a json file of the current game \
+                 state to filepath");
+  print_newline ()
+
+let pretty_print_string str =
+  print_newline();
+  print_endline(str);
+  print_newline()
