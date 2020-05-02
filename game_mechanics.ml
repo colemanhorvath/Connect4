@@ -1,7 +1,11 @@
 type piece =
   | None
   | Normal of int
+  | Anvil of int
+  | Wall
   | Bomb of int 
+  | Force of int
+
 
 type status = 
   | Play
@@ -10,6 +14,15 @@ type status =
 
 type board = piece list list
 
+(* connect_num is the number of pieces that need to be connected for a win, 
+   would be 4 for regular connect 4
+   colors is a list of all the colors the players have picked used for 
+   printing the gameboard piece colors, index 0 is the color of player 1, etc. 
+   game_mode is an int representing the 3 possible game modes:
+   1 is no special pieces, 2 is 1 of each special piece, 
+   3 is Random chance of receiving special pieces 
+   special pieces is a list of the numbers of special pieces each player has 
+   with the format [num of anvils; wall; bomb; force] *)
 type t = {
   num_players : int;
   rows : int;
@@ -17,6 +30,10 @@ type t = {
   gameboard : board;
   player_turn : int;
   total_moves : int;
+  connect_num : int;
+  colors : string list;
+  game_mode : int;
+  special_pieces : int list;
 }
 
 type move_result =  Valid of t | Invalid
@@ -29,22 +46,36 @@ let rec board_helper col_counter acc =
 let create_board cols = 
   board_helper (cols - 1) [[]]
 
-let load_game players rows cols board turn moves = {
+let special_piece_maker mode = 
+  match mode with 
+  | 1 -> [0;0;0;0]
+  | 2 -> [1;1;1;1]
+  | 3 -> [Random.int 3; Random.int 3; Random.int 3; Random.int 3]
+  | _ -> [0;0;0;0]
+
+let load_game players rows cols board turn moves connect colors mode = {
   num_players = players;
   rows = rows;
   cols = cols; 
   gameboard = board;
   player_turn = turn;
   total_moves = moves;
+  connect_num = connect;
+  colors = colors;
+  game_mode = mode;
+  special_pieces = special_piece_maker mode;
 }
 
-let start_game rows cols players = 
-  load_game players rows cols (create_board cols) 0 0
+let start_game rows cols players connect colors mode = 
+  load_game players rows cols (create_board cols) 0 0 connect colors mode
 
 let create_piece piece_type player = 
   match piece_type with 
   | "normal" -> Normal player
+  | "anvil" -> Anvil player
+  | "wall" -> Wall
   | "bomb" -> Bomb player
+  | "force" -> Force player
   | _ -> None
 
 (** [verify_placement board col rows] is false if placing a piece in a col,
@@ -77,6 +108,10 @@ let get_player_turn state =
 let format p = 
   match p with 
   | Normal x -> "\"Normal " ^ (string_of_int x) ^ "\""
+  | Anvil x -> "\"Anvil " ^ (string_of_int x) ^ "\""
+  | Wall -> "\"Wall " ^ "\""
+  | Bomb x -> "\"Bomb " ^ (string_of_int x) ^ "\""
+  | Force x -> "\"Force " ^ (string_of_int x) ^ "\""
   | _ -> "\"Other " ^ "error" ^ "\""
 
 (** [string_of_piece p] is the JSON string representation of piece [p]. *)
@@ -86,9 +121,17 @@ let string_of_piece p =
   | Normal p ->
     let player = string_of_int p in 
     String.concat "" ["{\"type\":\"Normal\",\"player\":\""; player; "\"}"]
+  | Anvil p -> 
+    let player = string_of_int p in 
+    String.concat "" ["{\"type\":\"Anvil\",\"player\":\""; player; "\"}"]
+  | Wall -> 
+    String.concat "" ["{\"type\":\"Wall\":\"\"}"]
   | Bomb p -> 
     let player = string_of_int p in 
     String.concat "" ["{\"type\":\"Bomb\",\"player\":\""; player; "\"}"]
+  | Force p -> 
+    let player = string_of_int p in 
+    String.concat "" ["{\"type\":\"Force\",\"player\":\""; player; "\"}"]
 
 (** [string_of_col col] is the JSON string representation of piece list [col].*)
 let string_of_col col = 
@@ -117,83 +160,88 @@ let to_json_string st =
     String.concat "" ["\"total_moves\":\""; moves_str; "\"}"]
   ]
 
-let get_piece_player p= 
+(** [get_piece_player p] is the player whose piece is p, the Wall has no 
+    player associated because its colorless so it has a value of 100 *)
+let get_piece_player p = 
   match p with 
   | Normal x -> x
+  | Anvil x -> x
+  | Wall -> 100
   | Bomb x -> x
+  | Force x -> x
   | None -> 10
 
 
-let rec check_col_match column player count =
-  if count = 4 then true else 
+let rec check_col_match column player count connect =
+  if count = connect then true else 
     match column with
     | [] -> false
     | x :: xs -> let piece_num = get_piece_player x in 
-      if piece_num = player then check_col_match xs player (count + 1) 
+      if piece_num = player then check_col_match xs player (count + 1) connect
       else false
 
 
-let check_col_win board player col = 
+let check_col_win board player col connect = 
   let column = List.nth board col in 
-  if List.length column < 4 
-  then false else check_col_match column player 0
+  if List.length column < connect
+  then false else check_col_match column player 0 connect
 
 
-let rec check_row_match board row player col count last max_cols = 
-  if count = 4 then true
+let rec check_row_match board row player col count last max_cols connect = 
+  if count = connect then true
   else if col >= max_cols then false
   else if col = last then false
   else 
     let col_len = (List.nth board col |> List.length) in 
     if col_len <= row 
-    then check_row_match board row player (col + 1) 0 last max_cols
+    then check_row_match board row player (col + 1) 0 last max_cols connect
     else let piece = List.nth (List.nth board col) (col_len - row - 1) in
       let piece_num = get_piece_player piece in
       if piece_num = player 
-      then check_row_match board row player (col + 1) (count + 1) last max_cols
-      else check_row_match board row player (col + 1) 0 last max_cols
+      then check_row_match board row player (col + 1) (count + 1) last max_cols connect
+      else check_row_match board row player (col + 1) 0 last max_cols connect
 
 
-let rec check_diagonal_lr_match board row player col count inc last max_cols max_rows = 
-  if count = 4 then true
+let rec check_diagonal_lr_match board row player col count inc last max_cols max_rows connect = 
+  if count = connect then true
   else if row < 0 || row >= max_rows then false
   else if col < 0 || col >= max_cols then false
   else if inc = last then false
   else 
     let col_len = (List.nth board col |> List.length) in 
     if col_len <= row 
-    then check_diagonal_lr_match board (row + 1) player (col + 1) 0 (inc + 1) last max_cols max_rows
+    then check_diagonal_lr_match board (row + 1) player (col + 1) 0 (inc + 1) last max_cols max_rows connect
     else let piece = List.nth (List.nth board col) (col_len - row - 1) in
       let piece_num = get_piece_player piece in
       if piece_num = player 
-      then check_diagonal_lr_match board (row + 1) player (col + 1) (count + 1) (inc + 1) last max_cols max_rows
-      else check_diagonal_lr_match board (row + 1) player (col + 1) 0 (inc + 1) last max_cols max_rows
+      then check_diagonal_lr_match board (row + 1) player (col + 1) (count + 1) (inc + 1) last max_cols max_rows connect
+      else check_diagonal_lr_match board (row + 1) player (col + 1) 0 (inc + 1) last max_cols max_rows connect
 
-let rec check_diagonal_rl_match board row player col count inc last max_cols max_rows = 
-  if count = 4 then true
+let rec check_diagonal_rl_match board row player col count inc last max_cols max_rows connect = 
+  if count = connect then true
   else if row < 0 || row >= max_rows then false
   else if col < 0 || col >= max_cols then false
   else if inc = last then false
   else 
     let col_len = (List.nth board col |> List.length) in 
     if col_len <= row 
-    then check_diagonal_rl_match board (row - 1) player (col + 1) 0 (inc + 1) last max_cols max_rows
+    then check_diagonal_rl_match board (row - 1) player (col + 1) 0 (inc + 1) last max_cols max_rows connect
     else let piece = List.nth (List.nth board col) (col_len - row - 1) in
       let piece_num = get_piece_player piece in
       if piece_num = player 
-      then check_diagonal_rl_match board (row - 1) player (col + 1) (count + 1) (inc + 1) last max_cols max_rows
-      else check_diagonal_rl_match board (row - 1) player (col + 1) 0 (inc + 1) last max_cols max_rows
+      then check_diagonal_rl_match board (row - 1) player (col + 1) (count + 1) (inc + 1) last max_cols max_rows connect
+      else check_diagonal_rl_match board (row - 1) player (col + 1) 0 (inc + 1) last max_cols max_rows connect
 
 let check_win state player col =
   if state.total_moves / state.num_players < 3 then false else
     let col = col - 1 in
     let board = state.gameboard in
-    if check_col_win board player col then true 
+    if check_col_win board player col state.connect_num then true 
     else 
       let row = (List.nth board col |> List.length) - 1 in 
       let first = (max (col - 3) 0)in 
       let last = (min (col + 4) state.cols) in 
-      if check_row_match board row player first 0 last state.cols then true 
+      if check_row_match board row player first 0 last state.cols state.connect_num then true 
       else 
         let rowbegin = (max (row - 3) 0) in
         let rowend = (min (row + 3) (state.rows - 1)) in 
@@ -203,7 +251,7 @@ let check_win state player col =
         let range = (min (rowend - rowbegin) (colend - colbegin)) + 1 in 
         if range < 4 then false else
         if check_diagonal_lr_match board (row - start) player 
-            (col - start) 0 0 7 state.cols state.rows then true 
+            (col - start) 0 0 7 state.cols state.rows state.connect_num then true 
         else  
           let rowbegin = (min (row + 3) (state.rows - 1)) in
           let rowend = (max (row - 3) 0) in 
@@ -212,7 +260,7 @@ let check_win state player col =
           if range < 4 then false 
           else 
             check_diagonal_rl_match board (row + start) player 
-              (col - start) 0 0 7 state.cols state.rows
+              (col - start) 0 0 7 state.cols state.rows state.connect_num
 
 let check_draw state =
   state.total_moves = (state.cols * state.rows)

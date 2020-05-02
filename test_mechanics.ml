@@ -24,7 +24,7 @@ let rec pp_list_list lst acc =
   | [] -> "[ " ^ acc ^ " ]"
   | x :: xs -> pp_list_list xs (acc ^ (pp_list x))
 
-let start = start_game 6 7 2;;
+let start = start_game 6 7 2 4 ["red";"blue"] 1;;
 
 
 (** [make_move current_state col] makes a move adding a piece to col *)

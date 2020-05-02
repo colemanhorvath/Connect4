@@ -1,8 +1,11 @@
 (** The type of the game pieces. *)
 type piece = 
   | None
-  | Normal of int 
-  | Bomb of int
+  | Normal of int
+  | Anvil of int
+  | Wall
+  | Bomb of int 
+  | Force of int
 
 (** The type of game status (win, draw, or still being played). *)
 type status = 
@@ -40,11 +43,11 @@ type move_result =  Valid of t | Invalid
     a [rows] x [cols] board currently on the players turn indicated by [turn]
     where [moves] have been taken and they have resulted in the pieces in 
     [board]. *)
-val load_game: int -> int -> int -> board -> int -> int -> t
+val load_game: int -> int -> int -> board -> int -> int -> int -> string list -> int -> t
 
 (** [start_game rows cols players] is the initial state of the game
     with a [rows] x [cols] board and [players] number of players. *)
-val start_game: int -> int -> int -> t
+val start_game: int -> int -> int -> int -> string list -> int -> t
 
 (** [create_piece piece_type player] creates an instance of type piece for
     [player] of type [piece_type] *)
