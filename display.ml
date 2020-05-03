@@ -1,5 +1,5 @@
 (** Represents an exception that should never occur if the code works as 
-expected. *)
+    expected. *)
 exception InternalException
 
 (** [get_string_from_player player] is the string character that represents 
@@ -15,7 +15,7 @@ let get_string_from_piece piece =
   match piece with
   | Game_mechanics.Normal player -> get_string_from_player player
   | Game_mechanics.Bomb player -> get_string_from_player player
-  | Game_mechanics.None -> raise InternalException
+  | _ -> raise InternalException
 
 (** [rec find_piece row_index curr_index col] is recursively the string 
     representation of a piece at [row_index] of column [col]. [curr_index] is

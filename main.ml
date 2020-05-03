@@ -5,7 +5,7 @@ let quit_game () =
 (** [start_game] starts a basic game of size 7x7 with 2 players. *)
 let start_game = 
   (* TODO: allow different game sizes or player numbers *)
-  Game_mechanics.start_game 7 7 2
+  Game_mechanics.start_game 7 7 2 4 ["red"; "yellow"] 1
 
 (** [col_from_phrase object_phrase] is the column number from string list 
     [object_phrase].
@@ -52,8 +52,8 @@ let save_handler state object_phrase =
     true
   | Save.Save_Failure str -> 
     Display.pretty_print_string(String.concat "" 
-                                    ["Game failed to save to file "; str; 
-                                    ", please try again."]);
+                                  ["Game failed to save to file "; str; 
+                                   ", please try again."]);
     false 
 
 (** [check_win_condition state player col] checks to see if a game was won by
@@ -64,7 +64,7 @@ let check_win_condition state player col =
   | Game_mechanics.Win win_player -> 
     Display.print_board state;
     Display.pretty_print_string(String.concat "" ["Congrats Player "; 
-                                    string_of_int win_player; ", you won!"]);
+                                                  string_of_int win_player; ", you won!"]);
     quit_game ()
   | Game_mechanics.Draw ->
     Display.print_board state;
@@ -155,8 +155,8 @@ let rec game_setup () =
     game_setup ()
   | Failure str -> 
     Display.pretty_print_string(String.concat "" 
-                    ["Game failed to load at file "; str; 
-                     ", please try again."]);
+                                  ["Game failed to load at file "; str; 
+                                   ", please try again."]);
     game_setup ()
 
 (** [main ()] prints a welcome message and runs the game setup. *)

@@ -39,14 +39,19 @@ type t
 (** The type representing the result of an attempted move. *)
 type move_result =  Valid of t | Invalid
 
-(** [load_game players rows cols board turn moves] is the state of a game with
-    a [rows] x [cols] board currently on the players turn indicated by [turn]
-    where [moves] have been taken and they have resulted in the pieces in 
-    [board]. *)
-val load_game: int -> int -> int -> board -> int -> int -> int -> string list -> int -> t
+(** [load_game players rows cols board turn connect colors mode bomb force] is 
+    the state of a game with a [rows] x [cols] board currently on the players 
+    turn, indicated by [turn], with the pieces in [board], with a win condition 
+    of connecting [connect] pieces, where players are represented by [colors], 
+    the game is of type [mode], and [bomb] and [force] are true or false 
+    depending on if the current player must bomb or place an opponent's piece 
+    on their turn. *)
+val load_game: int -> int -> int -> board -> int -> int -> string list -> int 
+  -> bool -> bool -> t
 
-(** [start_game rows cols players] is the initial state of the game
-    with a [rows] x [cols] board and [players] number of players. *)
+(** [start_game rows cols players connect colors mode] is the initial state of 
+    the game with a [rows] x [cols] board, [players] number of players, victory
+    condition of connect [connect], [colors] of players, and game [mode]. *)
 val start_game: int -> int -> int -> int -> string list -> int -> t
 
 (** [create_piece piece_type player] creates an instance of type piece for

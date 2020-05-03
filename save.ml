@@ -43,7 +43,8 @@ let from_json json =
               |> to_list |> List.map map_cols in 
   let turn = json |> member "player_turn"
              |> to_string |> int_of_string in 
-  Game_mechanics.load_game num_players rows cols board turn
+  (* TODO: update with new features *)
+  Game_mechanics.load_game num_players rows cols board turn 0 [] 0 false false
 
 let load filename = 
   let json = try Yojson.Basic.from_file filename with
