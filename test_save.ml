@@ -56,9 +56,9 @@ let test_game_board = [
 let test_game = load_game 2 7 7 test_game_board 1 5
 let blank_game = load_game 0 0 0 [] 0 0
 
-let new_game_standard_string = "{\"num_players\":\"2\",\"rows\":\"7\",\"cols\":\"7\",\"gameboard\":[[],[],[],[],[],[],[]],\"player_turn\":\"0\",\"total_moves\":\"0\"}"
-let new_game_9x9_string = "{\"num_players\":\"2\",\"rows\":\"9\",\"cols\":\"9\",\"gameboard\":[[],[],[],[],[],[],[],[],[]],\"player_turn\":\"0\",\"total_moves\":\"0\"}"
-let test_game_string = "{\"num_players\":\"2\",\"rows\":\"7\",\"cols\":\"7\",\"gameboard\":[[{\"type\":\"Normal\",\"player\":\"1\"}],[{\"type\":\"Normal\",\"player\":\"1\"},{\"type\":\"Normal\",\"player\":\"2\"}],[{\"type\":\"Normal\",\"player\":\"2\"}],[{\"type\":\"Normal\",\"player\":\"1\"}],[],[],[]],\"player_turn\":\"1\",\"total_moves\":\"5\"}"
+let new_game_standard_string = "{\"num_players\":\"2\",\"rows\":\"7\",\"cols\":\"7\",\"gameboard\":[[],[],[],[],[],[],[]],\"player_turn\":\"0\"}"
+let new_game_9x9_string = "{\"num_players\":\"2\",\"rows\":\"9\",\"cols\":\"9\",\"gameboard\":[[],[],[],[],[],[],[],[],[]],\"player_turn\":\"0\"}"
+let test_game_string = "{\"num_players\":\"2\",\"rows\":\"7\",\"cols\":\"7\",\"gameboard\":[[{\"type\":\"Normal\",\"player\":\"1\"}],[{\"type\":\"Normal\",\"player\":\"1\"},{\"type\":\"Normal\",\"player\":\"2\"}],[{\"type\":\"Normal\",\"player\":\"2\"}],[{\"type\":\"Normal\",\"player\":\"1\"}],[],[],[]],\"player_turn\":\"1\"}"
 
 let load_tests = [
   make_load_test "load a new standard game" "new_game_standard.json" 

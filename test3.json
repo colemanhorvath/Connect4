@@ -1,1 +1,39 @@
-{"num_players":"2","rows":"7","cols":"7","gameboard":[[{"type":"Normal","player":"1"}],[{"type":"Normal","player":"1"},{"type":"Normal","player":"2"}],[{"type":"Normal","player":"2"}],[{"type":"Normal","player":"1"}],[],[],[]],"player_turn":"1","total_moves":"5"}
+{
+  "num_players": "2",
+  "rows": "7",
+  "cols": "7",
+  "gameboard": [
+    [
+      {
+        "type": "Normal",
+        "player": "1"
+      }
+    ],
+    [
+      {
+        "type": "Normal",
+        "player": "1"
+      },
+      {
+        "type": "Normal",
+        "player": "2"
+      }
+    ],
+    [
+      {
+        "type": "Normal",
+        "player": "2"
+      }
+    ],
+    [
+      {
+        "type": "Normal",
+        "player": "1"
+      }
+    ],
+    [],
+    [],
+    []
+  ],
+  "player_turn": "1"
+}

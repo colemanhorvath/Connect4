@@ -34,7 +34,6 @@ type t = {
   cols : int;
   gameboard : board;
   player_turn : int;
-  total_moves : int;
   connect_num : int;
   colors : string list;
   game_mode : int;
@@ -60,14 +59,13 @@ let special_piece_maker mode =
   | 3 -> [Random.int 3; Random.int 3; Random.int 3; Random.int 3]
   | _ -> [0;0;0;0]
 
-let load_game players rows cols board turn moves connect colors mode bomb 
+let load_game players rows cols board turn connect colors mode bomb 
     force = {
   num_players = players;
   rows = rows;
   cols = cols; 
   gameboard = board;
   player_turn = turn;
-  total_moves = moves;
   connect_num = connect;
   colors = colors;
   game_mode = mode;
@@ -77,7 +75,7 @@ let load_game players rows cols board turn moves connect colors mode bomb
 }
 
 let start_game rows cols players connect colors mode = 
-  load_game players rows cols (create_board cols) 0 0 connect colors mode 
+  load_game players rows cols (create_board cols) 0 connect colors mode 
     false false
 
 let create_piece piece_type player = 
@@ -246,14 +244,12 @@ let to_json_string st =
   let col_str = string_of_int st.cols in 
   let board_str = string_of_board st.gameboard in 
   let turn_str = string_of_int st.player_turn in 
-  let moves_str = string_of_int st.total_moves in 
   String.concat "," [
     String.concat "" ["{\"num_players\":\""; np_str; "\""];
     String.concat "" ["\"rows\":\""; row_str; "\""];
     String.concat "" ["\"cols\":\""; col_str; "\""];
     String.concat "" ["\"gameboard\":"; board_str];
     String.concat "" ["\"player_turn\":\""; turn_str; "\""];
-    String.concat "" ["\"total_moves\":\""; moves_str; "\"}"]
   ]
 
 (** [get_piece_player p] is the player whose piece is p, the Wall has no 
@@ -329,37 +325,44 @@ let rec check_diagonal_rl_match board row player col count inc last max_cols max
       else check_diagonal_rl_match board (row - 1) player (col + 1) 0 (inc + 1) last max_cols max_rows connect
 
 let check_win state player col =
-  if state.total_moves / state.num_players < 3 then false else
-    let col = col - 1 in
-    let board = state.gameboard in
-    if check_col_win board player col state.connect_num then true 
+  let col = col - 1 in
+  let board = state.gameboard in
+  if check_col_win board player col state.connect_num then true 
+  else 
+    let row = (List.nth board col |> List.length) - 1 in 
+    let first = (max (col - 3) 0)in 
+    let last = (min (col + 4) state.cols) in 
+    if check_row_match board row player first 0 last state.cols state.connect_num then true 
     else 
-      let row = (List.nth board col |> List.length) - 1 in 
-      let first = (max (col - 3) 0)in 
-      let last = (min (col + 4) state.cols) in 
-      if check_row_match board row player first 0 last state.cols state.connect_num then true 
-      else 
-        let rowbegin = (max (row - 3) 0) in
-        let rowend = (min (row + 3) (state.rows - 1)) in 
-        let colbegin = (max (col - 3) 0) in
-        let colend = (min (col + 3) (state.cols - 1)) in 
-        let start = (min (row - rowbegin) (col - colbegin)) in 
-        let range = (min (rowend - rowbegin) (colend - colbegin)) + 1 in 
-        if range < 4 then false else
-        if check_diagonal_lr_match board (row - start) player 
-            (col - start) 0 0 7 state.cols state.rows state.connect_num then true 
-        else  
-          let rowbegin = (min (row + 3) (state.rows - 1)) in
-          let rowend = (max (row - 3) 0) in 
-          let start = (min (rowbegin - row) (col - colbegin)) in 
-          let range = (min (rowbegin - rowend) (colend - colbegin)) + 1 in 
-          if range < 4 then false 
-          else 
-            check_diagonal_rl_match board (row + start) player 
-              (col - start) 0 0 7 state.cols state.rows state.connect_num
+      let rowbegin = (max (row - 3) 0) in
+      let rowend = (min (row + 3) (state.rows - 1)) in 
+      let colbegin = (max (col - 3) 0) in
+      let colend = (min (col + 3) (state.cols - 1)) in 
+      let start = (min (row - rowbegin) (col - colbegin)) in 
+      let range = (min (rowend - rowbegin) (colend - colbegin)) + 1 in 
+      if range < 4 then false else
+      if check_diagonal_lr_match board (row - start) player 
+          (col - start) 0 0 7 state.cols state.rows state.connect_num then true 
+      else  
+        let rowbegin = (min (row + 3) (state.rows - 1)) in
+        let rowend = (max (row - 3) 0) in 
+        let start = (min (rowbegin - row) (col - colbegin)) in 
+        let range = (min (rowbegin - rowend) (colend - colbegin)) + 1 in 
+        if range < 4 then false 
+        else 
+          check_diagonal_rl_match board (row + start) player 
+            (col - start) 0 0 7 state.cols state.rows state.connect_num
+
+(** [rec check_draw_helper state board] is recursively true if the board is
+    completely full of pieces, false otherwise. *)
+let rec check_draw_helper state board = 
+  match board with
+  | [] -> true
+  | col::t ->
+    if List.length col <> state.rows then false else check_draw_helper state t
 
 let check_draw state =
-  state.total_moves = (state.cols * state.rows)
+  check_draw_helper state state.gameboard
 
 (* TODO: add tests, maybe take draw/win out of mli *)
 let check_status state player col =
