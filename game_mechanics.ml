@@ -6,13 +6,14 @@ type piece =
   | Bomb of int 
   | Force of int
 
-
 type status = 
   | Play
   | Draw
   | Win of int
 
 type board = piece list list
+
+exception InvalidRow of int
 
 (* connect_num is the number of pieces that need to be connected for a win, 
    would be 4 for regular connect 4
@@ -22,7 +23,11 @@ type board = piece list list
    1 is no special pieces, 2 is 1 of each special piece, 
    3 is Random chance of receiving special pieces 
    special pieces is a list of the numbers of special pieces each player has 
-   with the format [num of anvils; wall; bomb; force] *)
+   with the format [num of anvils; wall; bomb; force] 
+   is_player_forced is a true if the current player is forced to play their 
+   opponent's piece on their turn per the Force special piece, false otherwise. 
+   is_awaiting_bomb is true if the next move is the player playing a bomb, 
+   false otherwise.*)
 type t = {
   num_players : int;
   rows : int;
@@ -34,6 +39,8 @@ type t = {
   colors : string list;
   game_mode : int;
   special_pieces : int list;
+  is_player_forced: bool;
+  is_awaiting_bomb: bool;
 }
 
 type move_result =  Valid of t | Invalid
@@ -53,7 +60,8 @@ let special_piece_maker mode =
   | 3 -> [Random.int 3; Random.int 3; Random.int 3; Random.int 3]
   | _ -> [0;0;0;0]
 
-let load_game players rows cols board turn moves connect colors mode = {
+let load_game players rows cols board turn moves connect colors mode bomb 
+    force = {
   num_players = players;
   rows = rows;
   cols = cols; 
@@ -64,10 +72,13 @@ let load_game players rows cols board turn moves connect colors mode = {
   colors = colors;
   game_mode = mode;
   special_pieces = special_piece_maker mode;
+  is_awaiting_bomb = bomb;
+  is_player_forced = force;
 }
 
 let start_game rows cols players connect colors mode = 
-  load_game players rows cols (create_board cols) 0 0 connect colors mode
+  load_game players rows cols (create_board cols) 0 0 connect colors mode 
+    false false
 
 let create_piece piece_type player = 
   match piece_type with 
@@ -89,15 +100,100 @@ let verify_placement board col rows =
 let update_board board col piece =
   List.mapi (fun i x -> if i = col then (piece :: x) else x) board
 
+(** [clear_column board col] is a board with the column at index [col] set to 
+    empty. *)
+let clear_column board col =
+  List.mapi (fun i x -> if i = col then [] else x) board
+
+(** [next_player state piece] is the player that should make the next move, 
+    depending on the current [state] and the type of the last [piece] played. 
+    Another move from the current player is necessary if they playyed a wall, 
+    a bomb, or an opponents piece. *)
+let next_player state piece = 
+  if state.is_player_forced = true then state.player_turn 
+  else
+    match piece with
+    | Wall -> state.player_turn
+    | Bomb _ -> state.player_turn
+    | _ -> (state.player_turn + 1) mod state.num_players
+
+(** [get_new_board state col piece] is the new board as a result of placing 
+    [piece] in [col] of the board in [state]. For anvils, this includes removing 
+    all pieces in [col] before placing [piece], otherwise the [piece] is just 
+    placed in [col]. *)
+let get_new_board state col piece =
+  match piece with 
+  | Anvil _ -> 
+    let temp_board = clear_column state.gameboard (col - 1) in
+    update_board temp_board (col - 1) piece
+  | _ -> update_board state.gameboard (col - 1) piece
+
+(** [is_force_piece piece] is true if [piece] is of type Force, false 
+    otherwise. *)
+let is_force_piece piece = 
+  match piece with
+  | Force _ -> true
+  | _ -> false
+
+(** [is_force_piece piece] is true if [piece] is of type Bomb, false 
+    otherwise. *)
+let is_bomb_piece piece = 
+  match piece with
+  | Bomb _ -> true
+  | _ -> false
+
 let move state col piece = 
   if col > state.cols || col <= 0 then Invalid
-  else if verify_placement state.gameboard (col - 1) state.rows 
-  then let new_board = update_board state.gameboard (col - 1) piece in 
+  else if not (verify_placement state.gameboard (col - 1) state.rows) 
+  then Invalid
+  else 
+    let new_board = get_new_board state col piece in
+    let new_player = next_player state piece in
+    let force_bool = is_force_piece piece in
+    let bomb_bool = is_bomb_piece piece in
     Valid {state with gameboard = new_board; 
-                      player_turn = (state.player_turn + 1) 
-                                    mod state.num_players;
-                      total_moves = state.total_moves + 1}
-  else Invalid
+                      player_turn = new_player;
+                      is_player_forced = force_bool;
+                      is_awaiting_bomb = bomb_bool}
+
+(** [rec bomb_board_helper col row_i iterator] is recursively the new column
+    without the piece at [row_i] with the other pieces shifted down in the 
+    current [col]. [iterator] starts at the highest row in [col] and decreases
+     throughout. *)
+let rec bomb_board_helper col row_i iterator =
+  match col with 
+  | [] -> []
+  | elt::t ->
+    if row_i <> iterator then elt::(bomb_board_helper t row_i (iterator - 1))
+    else bomb_board_helper t row_i (iterator - 1)
+
+(** [rec bomb_board board row_i col_i iterator] is recursively the new board 
+    without the piece at [row_i] [col_i] in the current [board]. [iterator] 
+    starts at the initial column index (1), and increases throughout. *)
+let rec bomb_board board row_i col_i iterator = 
+  match board with 
+  | [] -> []
+  | column::t -> 
+    if iterator <> col_i then column::(bomb_board t row_i col_i (iterator + 1))
+    else 
+      let num_rows = List.length column in
+      if row_i > num_rows then raise (InvalidRow row_i)
+      else (bomb_board_helper column row_i num_rows)
+           ::(bomb_board t row_i col_i (iterator + 1))
+
+let bomb state row col =
+  try
+    if col > state.cols || col <= 0 || row > state.rows || row <= 0 then Invalid
+    else 
+      let new_board = bomb_board state.gameboard row col 1 in
+      Valid {state with gameboard = new_board; 
+                        player_turn = (state.player_turn + 1) 
+                                      mod state.num_players;
+                        is_player_forced = false;
+                        is_awaiting_bomb = false}
+  with
+  | InvalidRow r -> Invalid
+
 
 let get_gameboard state = 
   state.gameboard

@@ -58,6 +58,12 @@ val create_piece: string -> int -> piece
     the game with the new move, and [Invalid] otherwise  *)
 val move: t -> int -> piece -> move_result
 
+(** [bomb state row col] is [Valid new_state] without the piece at [row],
+    [col], where new_state represents the updated state of the game without 
+    that piece and the column moved down. If there is not a piece at [row], 
+    [col], is [Invalid]. *)
+val bomb: t -> int -> int -> move_result
+
 (** [get_gameboard state] is the gameboard in [state] *)
 val get_gameboard: t -> board
 
