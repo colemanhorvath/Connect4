@@ -44,14 +44,13 @@ let rec find_piece st row_index curr_index col =
     representation of a single row at [row_index] of [board] of state [st]. *)
 let rec row_string st board row_index =
   let dimensions = Game_mechanics.get_dimensions st in
-  let num_cols = snd dimensions in
   let num_rows = fst dimensions in
   print_string " ";
   match board with 
   | [] -> ();
   | col::t -> 
     let num_pieces_in_col = List.length col in
-    if row_index <= (num_cols - num_pieces_in_col) then (
+    if row_index <= (num_rows - num_pieces_in_col) then (
       ANSITerminal.(print_string [cyan] ".");
       row_string st t row_index;
     )
