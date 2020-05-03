@@ -5,7 +5,7 @@ let quit_game () =
 (** [start_game] starts a basic game of size 7x7 with 2 players. *)
 let start_game = 
   (* TODO: allow different game sizes or player numbers *)
-  Game_mechanics.start_game 7 7 2 4 ["red"; "yellow"] 1
+  Game_mechanics.start_game 7 7 2 4 [ANSITerminal.yellow; ANSITerminal.red] 1
 
 (** [col_from_phrase object_phrase] is the column number from string list 
     [object_phrase].

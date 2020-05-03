@@ -46,13 +46,13 @@ type move_result =  Valid of t | Invalid
     the game is of type [mode], and [bomb] and [force] are true or false 
     depending on if the current player must bomb or place an opponent's piece 
     on their turn. *)
-val load_game: int -> int -> int -> board -> int -> int -> string list -> int 
-  -> bool -> bool -> t
+val load_game: int -> int -> int -> board -> int -> int -> 
+  ANSITerminal.style list -> int -> bool -> bool -> t
 
 (** [start_game rows cols players connect colors mode] is the initial state of 
     the game with a [rows] x [cols] board, [players] number of players, victory
     condition of connect [connect], [colors] of players, and game [mode]. *)
-val start_game: int -> int -> int -> int -> string list -> int -> t
+val start_game: int -> int -> int -> int -> ANSITerminal.style list -> int -> t
 
 (** [create_piece piece_type player] creates an instance of type piece for
     [player] of type [piece_type] *)
@@ -94,3 +94,9 @@ val check_draw : t -> bool
     been won by [player] after placing a piece in column [col], if the game 
     has resulted in a draw, or if the game is still being played. *)
 val check_status: t -> int -> int -> status
+
+(** get_dimensions state] is the dimensions of [state] as (row, col). *)
+val get_dimensions : t -> int * int
+
+(** get_colors state] is the string list of colors of [state]. *)
+val get_colors : t -> ANSITerminal.style list

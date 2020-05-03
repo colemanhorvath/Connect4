@@ -35,7 +35,7 @@ type t = {
   gameboard : board;
   player_turn : int;
   connect_num : int;
-  colors : string list;
+  colors : ANSITerminal.style list;
   game_mode : int;
   special_pieces : int list;
   is_player_forced: bool;
@@ -368,6 +368,12 @@ let check_draw state =
 let check_status state player col =
   if check_win state player col then Win player else
   if check_draw state then Draw else Play
+
+let get_dimensions state =
+  (state.rows, state.cols)
+
+let get_colors state =
+  state.colors
 
 (*
           Format.fprintf Format.std_formatter "c:%d \n" col;
