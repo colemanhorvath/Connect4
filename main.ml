@@ -1,10 +1,12 @@
-(** [quit_game ()] exits the program. *)
-let quit_game () = 
+(** [exit_game ()] exits the program. *)
+let exit_game () = 
   exit 0
 
-(** [start_game] starts a basic game of size 7x7 with 2 players. *)
-let start_game = 
-  (* TODO: allow different game sizes or player numbers *)
+let start_custom_game rows cols players connect colors mode =
+  Game_mechanics.start_game rows cols players connect colors mode
+
+(** [start_regular_game] starts a basic game of size 7x7 with 2 players. *)
+let start_regular_game = 
   Game_mechanics.start_game 7 7 2 4 [ANSITerminal.yellow; ANSITerminal.red] 1
 
 (** [col_from_phrase object_phrase] is the column number from string list 
@@ -65,11 +67,11 @@ let check_win_condition state player col =
     Display.print_board state;
     Display.pretty_print_string(String.concat "" ["Congrats Player "; 
                                                   string_of_int win_player; ", you won!"]);
-    quit_game ()
+    exit_game ()
   | Game_mechanics.Draw ->
     Display.print_board state;
     Display.pretty_print_string("Game over! There is a Draw.");
-    quit_game ()
+    exit_game ()
   | Game_mechanics.Play -> ()
 
 (** [place_piece state object_phrase player] is the new state after a piece 
@@ -92,6 +94,116 @@ let place_piece state object_phrase player =
     Display.pretty_print_string("Invalid column number. Please try again.");
     state
 
+
+(**update to allow for 1 player games *)
+let rec get_players () = 
+  let players = 
+    (read_line (print_endline "\nHow many players? \n\
+                               Choose a number between 2 and 4 inclusive.")) in
+  match int_of_string_opt players with 
+  | None -> Display.pretty_print_string "Please input a number."; get_players ()
+  | Some p -> if p > 4 || p < 2
+    then (Display.pretty_print_string "Invalid players number."; get_players () )
+    else p
+
+let rec get_rows () = 
+  let rows = 
+    (read_line (print_endline "\nHow many rows for your board? \n\
+                               Choose a number between 4 and 10 inclusive.")) in
+  match int_of_string_opt rows with 
+  | None -> Display.pretty_print_string "Please input a number."; get_rows ()
+  | Some r -> if r > 10 || r < 4
+    then (Display.pretty_print_string "Invalid row number."; get_rows () )
+    else r
+
+let rec get_cols () = 
+  let cols = 
+    (read_line (print_endline "\nHow many columns for your board? \n\
+                               Choose a number between 4 and 10 inclusive.")) in
+  match int_of_string_opt cols with 
+  | None -> Display.pretty_print_string "Please input a number."; get_cols ()
+  | Some c -> if c > 10 || c < 4 
+    then (Display.pretty_print_string "Invalid column number."; get_cols () )
+    else c
+
+let rec get_connect rows cols = 
+  let connect = 
+    (read_line (print_endline "\nHow many pieces do you need to connect to win \
+                               your game? \nChoose a number between 3 and 6 \
+                               inclusive.")) in
+  match int_of_string_opt connect with 
+  | None -> Display.pretty_print_string "Please input a number."; 
+    get_connect rows cols
+  | Some c -> if c > 6 || c < 3 
+    then (Display.pretty_print_string "Invalid connect number."; 
+          get_connect rows cols ) 
+    else if (c > rows && c > cols)
+    then (Display.pretty_print_string "The board is too small for this. Please \
+                                       pick another number"; 
+          get_connect rows cols ) 
+    else c
+
+let rec get_colors players count acc = 
+  if count = (players + 1) then List.rev acc else 
+    let prompt = "\nPick a color for player " ^ (string_of_int count) ^ 
+                 ".\nThe options are \"Red\", \"Green\", \"Yellow\", \"Blue\", \
+                  \"Magenta\", or \"Cyan\"" in
+    let color = (read_line (print_endline prompt)) in 
+    let piece_color = 
+      match color with 
+      | "Red" -> if List.mem ANSITerminal.red acc 
+        then (Display.pretty_print_string "Please input a different color.";
+              ANSITerminal.black)
+        else ANSITerminal.red
+      | "Green" -> if List.mem ANSITerminal.green acc 
+        then (Display.pretty_print_string "Please input a different color.";
+              ANSITerminal.black)
+        else ANSITerminal.green
+      | "Yellow" -> if List.mem ANSITerminal.yellow acc 
+        then (Display.pretty_print_string "Please input a different color.";
+              ANSITerminal.black)
+        else ANSITerminal.yellow
+      | "Blue" -> if List.mem ANSITerminal.blue acc 
+        then (Display.pretty_print_string "Please input a different color.";
+              ANSITerminal.black)
+        else ANSITerminal.blue
+      | "Magenta" -> if List.mem ANSITerminal.magenta acc 
+        then (Display.pretty_print_string "Please input a different color.";
+              ANSITerminal.black)
+        else ANSITerminal.magenta
+      | "Cyan" -> if List.mem ANSITerminal.cyan acc 
+        then (Display.pretty_print_string "Please input a different color.";
+              ANSITerminal.black)
+        else ANSITerminal.cyan
+      | _ -> Display.pretty_print_string "Please input a valid color."; 
+        ANSITerminal.black
+    in if piece_color = ANSITerminal.black 
+    then get_colors players count acc 
+    else get_colors players (count + 1) (piece_color :: acc)
+
+let rec get_game_mode () = 
+  let mode = 
+    (read_line (print_endline "\nWhich game mode would you like to play? \n\
+                               1 is no special pieces, 2 is 1 of each special \
+                               piece, 3 is Random chance of receiving special \
+                               pieces")) in
+  match int_of_string_opt mode with 
+  | None -> Display.pretty_print_string "Please input a number"; 
+    get_game_mode ()
+  | Some m -> if m > 3 || m < 1 
+    then (Display.pretty_print_string "Invalid game mode"; get_game_mode() )
+    else m
+
+let special_game_setup () = 
+  let players = get_players () in 
+  let rows = get_rows () in 
+  let cols = get_cols () in
+  let connect_num = get_connect rows cols in
+  let colors = get_colors players 1 [] in 
+  let mode = get_game_mode () in
+  start_custom_game rows cols players connect_num colors mode
+
+
 (** [rec play_game state] recursively asks for player input one step at a time 
     and handles all possible commands after a game has been started. This 
     includes [help], [print], [place], and [save]. If a command is empty or 
@@ -106,12 +218,19 @@ let rec play_game state =
     | Command.Help ->
       Display.print_help ();
       play_game state
+    | Command.Hand ->
+      Display.print_hand state curr_player;
+      play_game state
+    | Command.Quit ->
+      Display.pretty_print_string "Ending the game and returning to the \
+                                   game setup menu.";
+      game_setup ()
     | Command.Print ->
       Display.print_board state;
       play_game state
     | Command.Save object_phrase -> 
       let saved = save_handler state object_phrase in
-      if not saved then play_game state else quit_game ()
+      if not saved then play_game state else exit_game ()
     | Command.Place object_phrase ->
       let new_state = place_piece state object_phrase curr_player in
       Display.print_start_turn new_state;
@@ -125,18 +244,25 @@ let rec play_game state =
     Display.pretty_print_string "Invalid command provided. Please try again.";
     play_game state
 
-(** [rec game_setup ()] recursively asks for player input to either [start] the
+(** [game_setup ()] recursively asks for player input to either [start] the
     game or [load] a game file and play. If a command is empty, malformed, or a
     failure, an explanation is printed and another command is prompted for. *)
-let rec game_setup () = 
+and game_setup () = 
   let command = 
-    (read_line (print_endline "Please type \"start\" to start the game, or \
-                               \"load [filename]\" to load a previously saved \
-                               game.")) in
+    (read_line (print_endline "Please type \"start\" to start a regular 2 \
+                               player Connect 4 game, \"settings\" to create \
+                               a custom Connect 4 game, \"load [filename]\" to \
+                               load a previously saved game, or \"exit\" \
+                               to exit the game console.")) in
   try
     match Command.parse command with 
     | Command.Start -> 
-      let game_state = start_game in
+      let game_state = start_regular_game in
+      Display.pretty_print_string "Game state started!";
+      Display.print_start_turn game_state;
+      play_game game_state
+    | Command.Settings -> 
+      let game_state = special_game_setup () in
       Display.pretty_print_string "Game state started!";
       Display.print_start_turn game_state;
       play_game game_state
@@ -145,6 +271,9 @@ let rec game_setup () =
       Display.pretty_print_string "Game state loaded!";
       Display.print_start_turn game_state;
       play_game game_state
+    | Command.Exit ->
+      Display.pretty_print_string "Ok bye!";
+      exit_game();
     | _ -> raise Command.Malformed
   with
   | Command.Empty -> 

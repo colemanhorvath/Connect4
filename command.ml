@@ -3,7 +3,11 @@ type object_phrase = string list
 type command = 
   | Print
   | Start
+  | Settings
   | Help
+  | Hand
+  | Quit
+  | Exit
   | Place of object_phrase
   | Save of object_phrase
   | Load of object_phrase
@@ -26,7 +30,11 @@ let parse input =
     if h = "" then raise Empty else
     if h = "print" then Print else
     if h = "start" then Start else
+    if h = "settings" then Settings else
     if h = "help" then Help else
+    if h = "hand" then Hand else
+    if h = "quit" then Quit else
+    if h = "exit" then Exit else
     if h = "place" then Place (parse_helper t []) else
     if h = "save" then Save (parse_helper t []) else
     if h = "load" then Load (parse_helper t []) else

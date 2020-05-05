@@ -6,7 +6,11 @@ type object_phrase = string list
 type command = 
   | Print
   | Start
+  | Settings
   | Help
+  | Hand
+  | Quit
+  | Exit
   | Place of object_phrase
   | Save of object_phrase
   | Load of object_phrase

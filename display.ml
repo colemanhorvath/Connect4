@@ -95,6 +95,17 @@ let print_help () =
                  state to filepath");
   print_newline ()
 
+let print_hand state player =
+  print_newline ();
+  let index = player - 1 in
+  let player_pieces = Game_mechanics.get_player_hand state index in
+  print_endline("Here are the pieces in your hand");
+  print_endline("anvils: " ^ string_of_int (List.nth player_pieces 0));
+  print_endline("walls: " ^ string_of_int (List.nth player_pieces 1));
+  print_endline("bombs: " ^ string_of_int (List.nth player_pieces 2));
+  print_endline("force pieces: " ^ string_of_int (List.nth player_pieces 3));
+  print_newline ()
+
 let pretty_print_string str =
   print_newline();
   print_endline(str);

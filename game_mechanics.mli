@@ -75,6 +75,9 @@ val get_gameboard: t -> board
 (** [get_player_turn state] is the player who can make the next move *)
 val get_player_turn: t -> int
 
+(** [get_player_hand state player] is the special pieces [player] has *)
+val get_player_hand: t -> int -> int list
+
 (** [format p] is a printing function to format the printing of pieces
     for debugging purposes *)
 val format: piece -> string

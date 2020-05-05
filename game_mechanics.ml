@@ -15,7 +15,8 @@ type board = piece list list
 
 exception InvalidRow of int
 
-(* connect_num is the number of pieces that need to be connected for a win, 
+(* player_turn starts at index 0 for player 1, 1 for player 2, etc
+   connect_num is the number of pieces that need to be connected for a win, 
    would be 4 for regular connect 4
    colors is a list of all the colors the players have picked used for 
    printing the gameboard piece colors, index 0 is the color of player 1, etc. 
@@ -23,7 +24,8 @@ exception InvalidRow of int
    1 is no special pieces, 2 is 1 of each special piece, 
    3 is Random chance of receiving special pieces 
    special pieces is a list of the numbers of special pieces each player has 
-   with the format [num of anvils; wall; bomb; force] 
+   with the format [[num of anvils; wall; bomb; force];[num of anvils; wall; bomb; force]; etc]
+   where index 0 is the special pieces player 1 has, etc.
    is_player_forced is a true if the current player is forced to play their 
    opponent's piece on their turn per the Force special piece, false otherwise. 
    is_awaiting_bomb is true if the next move is the player playing a bomb, 
@@ -37,7 +39,7 @@ type t = {
   connect_num : int;
   colors : ANSITerminal.style list;
   game_mode : int;
-  special_pieces : int list;
+  special_pieces : int list list;
   is_player_forced: bool;
   is_awaiting_bomb: bool;
 }
@@ -59,6 +61,12 @@ let special_piece_maker mode =
   | 3 -> [Random.int 3; Random.int 3; Random.int 3; Random.int 3]
   | _ -> [0;0;0;0]
 
+let rec special_piece_list_maker mode count acc = 
+  if count = 0 then acc 
+  else special_piece_list_maker mode (count - 1) (special_piece_maker mode :: acc)
+
+(* will need to update this for load, if loading an old game the special_pieces 
+   should be saved, not made from scratch *)
 let load_game players rows cols board turn connect colors mode bomb 
     force = {
   num_players = players;
@@ -69,7 +77,7 @@ let load_game players rows cols board turn connect colors mode bomb
   connect_num = connect;
   colors = colors;
   game_mode = mode;
-  special_pieces = special_piece_maker mode;
+  special_pieces = special_piece_list_maker mode players [];
   is_awaiting_bomb = bomb;
   is_player_forced = force;
 }
@@ -105,7 +113,7 @@ let clear_column board col =
 
 (** [next_player state piece] is the player that should make the next move, 
     depending on the current [state] and the type of the last [piece] played. 
-    Another move from the current player is necessary if they playyed a wall, 
+    Another move from the current player is necessary if they played a wall, 
     a bomb, or an opponents piece. *)
 let next_player state piece = 
   if state.is_player_forced = true then state.player_turn 
@@ -140,6 +148,29 @@ let is_bomb_piece piece =
   | Bomb _ -> true
   | _ -> false
 
+
+let rec player_piece_decrementer piece_loc pieces_list count acc = 
+  match pieces_list with 
+  | [] -> List.rev acc 
+  | x :: xs -> if count = piece_loc then player_piece_decrementer piece_loc xs
+        (count + 1) (x - 1 :: acc)
+    else player_piece_decrementer piece_loc xs (count + 1) (x :: acc)
+
+let rec special_piece_decrementer player piece_loc special_pieces_list count acc = 
+  match special_pieces_list with 
+  | [] -> List.rev acc 
+  | x :: xs -> if count = player then special_piece_decrementer player piece_loc
+        xs (count + 1) ((player_piece_decrementer piece_loc x 0 []) :: acc)
+    else special_piece_decrementer player piece_loc xs (count + 1) (x :: acc)
+
+let special_piece_matcher player piece special_pieces_list =
+  match piece with 
+  | Anvil _ -> special_piece_decrementer player 0 special_pieces_list 0 []
+  | Wall -> special_piece_decrementer player 1 special_pieces_list 0 []
+  | Bomb x -> special_piece_decrementer player 2 special_pieces_list 0 []
+  | Force x -> special_piece_decrementer player 3 special_pieces_list 0 []
+  | _ -> special_pieces_list
+
 let move state col piece = 
   if col > state.cols || col <= 0 then Invalid
   else if not (verify_placement state.gameboard (col - 1) state.rows) 
@@ -149,8 +180,11 @@ let move state col piece =
     let new_player = next_player state piece in
     let force_bool = is_force_piece piece in
     let bomb_bool = is_bomb_piece piece in
+    let special_pieces = special_piece_matcher state.player_turn piece 
+        state.special_pieces in
     Valid {state with gameboard = new_board; 
                       player_turn = new_player;
+                      special_pieces = special_pieces;
                       is_player_forced = force_bool;
                       is_awaiting_bomb = bomb_bool}
 
@@ -199,11 +233,14 @@ let get_gameboard state =
 let get_player_turn state = 
   state.player_turn + 1
 
+let get_player_hand state player =
+  List.nth state.special_pieces player
+
 let format p = 
   match p with 
   | Normal x -> "\"Normal " ^ (string_of_int x) ^ "\""
   | Anvil x -> "\"Anvil " ^ (string_of_int x) ^ "\""
-  | Wall -> "\"Wall " ^ "\""
+  | Wall -> "\"Wall" ^ "\""
   | Bomb x -> "\"Bomb " ^ (string_of_int x) ^ "\""
   | Force x -> "\"Force " ^ (string_of_int x) ^ "\""
   | _ -> "\"Other " ^ "error" ^ "\""

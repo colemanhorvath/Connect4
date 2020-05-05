@@ -9,5 +9,9 @@ val print_start_turn: Game_mechanics.t -> unit
     has been started. *)
 val print_help: unit -> unit
 
+(** [print_hand player] prints all of the special pieces that player currently
+    has. *)
+val print_hand: Game_mechanics.t -> int -> unit
+
 (** [pretty_print_string str] prints a newline before and after a string. *)
 val pretty_print_string: string -> unit
