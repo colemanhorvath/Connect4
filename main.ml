@@ -1,3 +1,11 @@
+(** Exception [InvalidPieceType] is raised if a place command contains a 
+    piece type that is not valid. *)
+exception InvalidPieceType
+
+(** Exception [InvalidPlacement] is raised if an invalid row and/or column 
+    is provided. *)
+exception InvalidPlacement
+
 (** [exit_game ()] exits the program. *)
 let exit_game () = 
   exit 0
@@ -11,13 +19,28 @@ let start_custom_game rows cols players connect colors mode =
 let start_regular_game = 
   Game_mechanics.start_game 7 7 2 4 [ANSITerminal.yellow; ANSITerminal.red] 1
 
-(** [col_from_phrase object_phrase] is the column number from string list 
-    [object_phrase].
-    Raises [Failure str] if not a valid int or object_phrase is empty. *)
-let col_from_phrase object_phrase = 
+(** [parse_helper piece_type tail] is the string representing the [piece_type]
+    and the column number of where it should be played from [tail]. 
+    Raises [Failure str] if the column is not an int or the piece type is 
+    not valid. *)
+let parse_helper piece_type tail = 
+  let possible_pieces = ["normal"; "anvil"; "wall"; "bomb"; "force"] in
+  match tail with 
+  | [] -> raise (Failure "")
+  | h::_ -> 
+    if List.mem piece_type possible_pieces then (piece_type, int_of_string h) 
+    else raise InvalidPieceType
+
+(** [parse_object_phrase object_phrase] is the string of the piece type 
+    and column number from string list [object_phrase].
+    Raises [Failure str] if not a valid int, object_phrase is empty, or a given
+    piece type is invalid. *)
+let parse_object_phrase object_phrase = 
   match object_phrase with 
   | [] -> raise (Failure "")
-  | h::_ -> int_of_string h
+  | h::t -> 
+    if List.length object_phrase = 1 then ("normal", int_of_string h) 
+    else parse_helper h t
 
 (** [load_from_phrase object_phrase] is the load_result from loading in the
     file present in [object_phrase].
@@ -76,26 +99,67 @@ let check_win_condition state player col =
     exit_game ()
   | Game_mechanics.Play -> ()
 
+(** [get_piece_player state player] is the [player] that the next piece should 
+    represent in [state]. This is the current player unless the last piece was 
+    a force, in which case it is the previous player. *)
+let get_piece_player state player = 
+  if Game_mechanics.is_forced state then 
+    Game_mechanics.get_prev_player_turn state
+  else player
+
 (** [place_piece state object_phrase player] is the new state after a piece 
     has been placed for the given [player] at the column in [object_phrase]. 
     The new state is the same as the current state if the move is invalid. *)
 let place_piece state object_phrase player = 
   try 
-    let col = col_from_phrase object_phrase in
+    let piece_and_col = parse_object_phrase object_phrase in
+    let piece_type = fst piece_and_col in
+    let col = snd piece_and_col in
+    let piece_player = get_piece_player state player in
 
-    (* TODO: allow different game pieces to be played *)
-    let piece = Game_mechanics.create_piece "normal" player in
+    let piece = Game_mechanics.create_piece piece_type piece_player in
     let move_result = Game_mechanics.move state col piece in
     match move_result with
     | Game_mechanics.Valid new_state -> 
-      (check_win_condition new_state player col);
+      (check_win_condition new_state piece_player col);
       new_state
-    | Game_mechanics.Invalid -> raise (Failure "")
+    | Game_mechanics.Invalid -> raise InvalidPlacement
   with
   | Failure _ -> 
+    Display.pretty_print_string("Invalid command. Please try again.");
+    state
+  | InvalidPieceType ->
+    Display.pretty_print_string("Invalid piece type. Please try again.");
+    state
+  | InvalidPlacement ->
     Display.pretty_print_string("Invalid column number. Please try again.");
     state
 
+(** [place_bomb state] is the new state from the user placing a bomb in a 
+    prompted for row and column. Recursively continues until a valid row/column 
+    of a piece is given.*)
+let rec place_bomb state = 
+  try 
+    let row = 
+      (read_line (print_endline 
+                    "What row would you like to place the bomb in?")) in
+    let col = 
+      (read_line (print_endline 
+                    "What column would you like to place the bomb in?")) in
+    let result = 
+      Game_mechanics.bomb state (int_of_string row) (int_of_string col) in
+    match result with
+    | Invalid -> raise InvalidPlacement
+    | Valid new_state ->
+      Display.print_start_turn new_state; 
+      new_state
+  with
+  | Failure _ -> 
+    print_endline "Non integer row and/or column provided. Please try again.";
+    place_bomb state
+  | InvalidPlacement ->
+    print_endline "Invalid row and/or column provided. Please try again.";
+    place_bomb state
 
 (** [get_players ()] recursively asks for player to input the number of 
     players in their game until a valid number between [2,4] is given *)
@@ -250,7 +314,9 @@ let rec play_game state =
     | Command.Place object_phrase ->
       let new_state = place_piece state object_phrase curr_player in
       Display.print_start_turn new_state;
-      play_game new_state
+      if Game_mechanics.is_bombed new_state then 
+        play_game (place_bomb new_state) 
+      else play_game new_state
     | Command.Quit ->
       Display.pretty_print_string "Ending the game and returning to the \
                                    game setup menu.";

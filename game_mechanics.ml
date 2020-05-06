@@ -251,6 +251,9 @@ let get_gameboard state =
 let get_player_turn state = 
   state.player_turn + 1
 
+let get_prev_player_turn state = 
+  if state.player_turn = 0 then state.num_players else state.player_turn
+
 let get_player_hand state player =
   List.nth state.special_pieces player
 
@@ -442,6 +445,12 @@ let get_dimensions state =
 
 let get_colors state =
   state.colors
+
+let is_forced state =
+  state.is_player_forced
+
+let is_bombed state =
+  state.is_awaiting_bomb
 
 (*
           Format.fprintf Format.std_formatter "c:%d \n" col;

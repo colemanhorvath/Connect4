@@ -75,6 +75,10 @@ val get_gameboard: t -> board
 (** [get_player_turn state] is the player who can make the next move *)
 val get_player_turn: t -> int
 
+(** [get_prev_player_turn state] is the player who made the last move. *)
+val get_prev_player_turn: t -> int
+
+
 (** [get_player_hand state player] is the special pieces [player] has *)
 val get_player_hand: t -> int -> int list
 
@@ -103,3 +107,11 @@ val get_dimensions : t -> int * int
 
 (** get_colors state] is the string list of colors of [state]. *)
 val get_colors : t -> ANSITerminal.style list
+
+(** is_forced state] is true of the current player in [state] is forced to 
+    play a piece of the previous player, false otherwise. *)
+val is_forced : t -> bool
+
+(** is_bombed state] is true if the current player has to play a bomb, 
+    false otherwise [state]. *)
+val is_bombed : t -> bool
