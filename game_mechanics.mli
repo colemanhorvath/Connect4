@@ -13,6 +13,10 @@ type status =
   | Draw
   | Win of int
 
+(** Exception [InvalidRow r] is raised if an invalid row [r] is attempted to be 
+    bombed. *)
+exception InvalidRow of int
+
 (** Exception [InvalidPieceType str] is raised if an invalid string 
     represententation [str] of a piece type is given. *)
 exception InvalidPieceType of string

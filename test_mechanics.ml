@@ -30,7 +30,10 @@ let print_board state =
   Format.fprintf Format.std_formatter "%s\n" 
     (pp_list_list (get_gameboard state) "")
 
-
+(** [print_board_from_board board] prints the gameboard [board] *)
+let print_board_from_board board = 
+  Format.fprintf Format.std_formatter "%s\n" 
+    (pp_list_list board "")
 
 (** [make_move current_state col] makes a move adding a piece to col *)
 let make_move current_state col =
@@ -145,12 +148,67 @@ let make_special_win_test2
   name >:: (fun _ ->
       assert_equal (check_win game_state player col) expected_output)
 
+let check_pieces_equal p p2 = 
+  match p, p2 with
+  | None, None -> true
+  | Wall, Wall -> true
+  | Normal i, Normal i2 -> i = i2
+  | Anvil i, Anvil i2 -> i = i2
+  | Bomb i, Bomb i2 -> i = i2
+  | Force i, Force i2 -> i = i2
+  | _ -> false
+
+let rec check_cols_equal c1 c2 =
+  match c1, c2 with
+  | [], [] -> true
+  | h::t, h2::t2 -> 
+    if check_pieces_equal h h2 then check_cols_equal t t2 else false
+  | _ -> false
+
+let rec check_boards_equal board1 board2 =
+  match board1, board2 with
+  | [], [] -> true
+  | h::t, h2::t2 -> 
+    if check_cols_equal h h2 then check_boards_equal t t2 else false
+  | _ -> false
+
+(** [make_bomb_test name start_state moves_list player row col invalid_bool 
+    expected_board] if the board from applying moves in [moves_list] onto 
+    [start_state] and bombs that state at [row], [col], is the same as 
+    [expected_board], or if invalid, is equal to [invalid_bool]. *)
+let make_bomb_test
+    (name: string)
+    (start_state)
+    (moves_list)
+    (row)
+    (col)
+    (invalid_bool: bool)
+    (expected_board) = 
+  try 
+    let game_state = test_special_moves start_state moves_list in 
+    let res = bomb game_state row col in
+    print_board_from_board expected_board;
+    print_board game_state;
+    match res with
+    | Invalid -> raise (InvalidRow row)
+    | Valid new_state -> 
+      print_board new_state;
+      let new_board = get_gameboard new_state in
+      name >:: (fun _ ->
+          assert_equal ( check_boards_equal new_board expected_board) true)
+  with
+  | InvalidRow r -> 
+    name >:: (fun _ ->
+        assert_equal ( invalid_bool) true)
+
 
 let start = start_game 6 7 2 4 [ANSITerminal.yellow; ANSITerminal.red] 1;;
 
 let special_start = start_game 6 7 2 4 [ANSITerminal.yellow; ANSITerminal.red] 2;;
 
 let small_special_start = start_game 5 5 3 3 [ANSITerminal.yellow; ANSITerminal.red] 2;;
+
+let empty_board = [[]; []; []; []; []; []; []];;
 
 let win_tests = [
   make_win_test "col win" start [4;4;3;5;5;2;2;4;4;2;6;5;5;7;7;2;6;1;3;2;3;4;3] 1 3 true;
@@ -217,11 +275,28 @@ let special_win_tests = [
   (* make_special_win_test "force no win" special_start [(1,"n");(1,"n");(1,"f");(2,"n");(1,"n")] 1 1 false; *)
 ]
 
+let make_bomb_tests = [
+  make_bomb_test "empty board" special_start [] 1 1 true [];
+  make_bomb_test "single piece" special_start [(1,"n")] 1 1 false empty_board;
+  make_bomb_test "invalid row" special_start [] 1 8 true [];
+  make_bomb_test "invalid col" special_start [] 8 1 true [];
+  make_bomb_test "row/col with no piece" special_start [(1,"n")] 2 1 true [];
+  make_bomb_test "complicated board bomb off top" 
+    special_start [(1,"n"); (1,"n"); (1,"n"); (2,"n"); (2,"n")] 2 2 false 
+    (get_gameboard (test_special_moves special_start 
+                      [(1,"n"); (1,"n"); (1,"n"); (2,"n")]));
+  make_bomb_test "complicated board bomb off bottom wall"
+    special_start [(1,"w"); (1,"n"); (1,"n"); (2,"n"); (2,"n")] 1 1 false 
+    (get_gameboard (test_special_moves special_start 
+                      [(1,"n"); (1,"n"); (2,"n"); (2,"n")]));
+]
+
 let suite =
   "test suite for command"  >::: List.flatten [
     win_tests;
     draw_tests;
     special_win_tests;
+    make_bomb_tests;
   ]
 
 let _ = run_test_tt_main suite
