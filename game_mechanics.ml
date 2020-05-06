@@ -15,6 +15,8 @@ type board = piece list list
 
 exception InvalidRow of int
 
+exception InvalidPieceType of string
+
 (* num_players is the number of players in the game
    rows is the number of rows in the gameboard
    cols is the number of columns in the gameboard
@@ -255,7 +257,16 @@ let get_prev_player_turn state =
   if state.player_turn = 0 then state.num_players else state.player_turn
 
 let get_player_hand state player =
-  List.nth state.special_pieces player
+  List.nth state.special_pieces (player - 1)
+
+let get_num_of_piece_type state player piece_type =
+  let hand = get_player_hand state player in
+  match piece_type with
+  | "anvil" -> List.nth hand 0
+  | "wall" -> List.nth hand 1
+  | "bomb" -> List.nth hand 2
+  | "force" -> List.nth hand 3
+  | _ -> raise (InvalidPieceType piece_type)
 
 let format p = 
   match p with 

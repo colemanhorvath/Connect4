@@ -13,6 +13,11 @@ type status =
   | Draw
   | Win of int
 
+(** Exception [InvalidPieceType str] is raised if an invalid string 
+    represententation [str] of a piece type is given. *)
+exception InvalidPieceType of string
+
+
 (** The type representing the board for the game.
     The board is represented like so 
     a board with 5 rows and 7 cols would have a list with 7 entries,
@@ -78,9 +83,12 @@ val get_player_turn: t -> int
 (** [get_prev_player_turn state] is the player who made the last move. *)
 val get_prev_player_turn: t -> int
 
-
 (** [get_player_hand state player] is the special pieces [player] has *)
 val get_player_hand: t -> int -> int list
+
+(** [get_num_of_piece_type state player str] is the number of special pieces
+    [player] has of piece type [str] in [state]. *)
+val get_num_of_piece_type: t -> int -> string-> int
 
 (** [format p] is a printing function to format the printing of pieces
     for debugging purposes *)

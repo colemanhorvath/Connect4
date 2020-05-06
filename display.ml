@@ -97,8 +97,7 @@ let print_help () =
 
 let print_hand state player =
   print_newline ();
-  let index = player - 1 in
-  let player_pieces = Game_mechanics.get_player_hand state index in
+  let player_pieces = Game_mechanics.get_player_hand state player in
   print_endline("Here are the pieces in your hand");
   print_endline("anvils: " ^ string_of_int (List.nth player_pieces 0));
   print_endline("walls: " ^ string_of_int (List.nth player_pieces 1));

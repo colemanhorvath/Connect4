@@ -6,6 +6,14 @@ exception InvalidPieceType
     is provided. *)
 exception InvalidPlacement
 
+(** Exception [InvalidForce] is raised if a piece type besides "normal" is 
+    played when the player is forced. *)
+exception InvalidForce
+
+(** Exception [NoPiecesOfType] is raised if a piece type is played but the user
+    does not have any pieces of that type in hand. *)
+exception NoPiecesOfType
+
 (** [exit_game ()] exits the program. *)
 let exit_game () = 
   exit 0
@@ -19,28 +27,37 @@ let start_custom_game rows cols players connect colors mode =
 let start_regular_game = 
   Game_mechanics.start_game 7 7 2 4 [ANSITerminal.yellow; ANSITerminal.red] 1
 
-(** [parse_helper piece_type tail] is the string representing the [piece_type]
-    and the column number of where it should be played from [tail]. 
-    Raises [Failure str] if the column is not an int or the piece type is 
-    not valid. *)
-let parse_helper piece_type tail = 
+(** [parse_helper st piece_type tail] is the string representing the 
+    [piece_type]and the column number of where it should be played from [tail] 
+    in state [st] for [player]. 
+    Raises [Failure str] if the column is not an int or tail is empty.
+    Raises [InvalidPieceType] if an invalid piece name is entered.
+    Raises [NoPiecesOfType] if player has no pieces of [piece_type]. *)
+let parse_helper st piece_type tail player = 
   let possible_pieces = ["normal"; "anvil"; "wall"; "bomb"; "force"] in
   match tail with 
   | [] -> raise (Failure "")
   | h::_ -> 
-    if List.mem piece_type possible_pieces then (piece_type, int_of_string h) 
-    else raise InvalidPieceType
+    if not (List.mem piece_type possible_pieces) then raise InvalidPieceType
+    else if piece_type <> "normal" && Game_mechanics.get_num_of_piece_type 
+              st player piece_type <= 0 then raise NoPiecesOfType
+    else (piece_type, int_of_string h) 
 
-(** [parse_object_phrase object_phrase] is the string of the piece type 
-    and column number from string list [object_phrase].
+(** [parse_object_phrase st object_phrase player] is the string of piece type 
+    and col number from string list [object_phrase] for state [st] and [player]
     Raises [Failure str] if not a valid int, object_phrase is empty, or a given
-    piece type is invalid. *)
-let parse_object_phrase object_phrase = 
+    piece type is invalid. 
+    Raises [InvalidPieceType if an invalid piece name is entered.
+    Raises [InvalidForce] if a non-normal piece is played when player forced.
+    Raises [NoPiecesOfType] if player has no pieces of specified piece type. *)
+let parse_object_phrase st object_phrase player = 
   match object_phrase with 
   | [] -> raise (Failure "")
   | h::t -> 
     if List.length object_phrase = 1 then ("normal", int_of_string h) 
-    else parse_helper h t
+    else if Game_mechanics.is_forced st && h <> "normal" then 
+      raise InvalidForce
+    else parse_helper st h t player
 
 (** [load_from_phrase object_phrase] is the load_result from loading in the
     file present in [object_phrase].
@@ -91,7 +108,8 @@ let check_win_condition state player col =
   | Game_mechanics.Win win_player -> 
     Display.print_board state;
     Display.pretty_print_string(String.concat "" ["Congrats Player "; 
-                                                  string_of_int win_player; ", you won!"]);
+                                                  string_of_int win_player;
+                                                  ", you won!"]);
     exit_game ()
   | Game_mechanics.Draw ->
     Display.print_board state;
@@ -112,7 +130,7 @@ let get_piece_player state player =
     The new state is the same as the current state if the move is invalid. *)
 let place_piece state object_phrase player = 
   try 
-    let piece_and_col = parse_object_phrase object_phrase in
+    let piece_and_col = parse_object_phrase state object_phrase player in
     let piece_type = fst piece_and_col in
     let col = snd piece_and_col in
     let piece_player = get_piece_player state player in
@@ -133,6 +151,14 @@ let place_piece state object_phrase player =
     state
   | InvalidPlacement ->
     Display.pretty_print_string("Invalid column number. Please try again.");
+    state
+  | InvalidForce ->
+    Display.pretty_print_string("Only a normal piece can be played when \
+    forced. Please try again.");
+    state
+  | NoPiecesOfType ->
+    Display.pretty_print_string("Player has no pieces of specified type. \
+    Please try again.");
     state
 
 (** [place_bomb state] is the new state from the user placing a bomb in a 
