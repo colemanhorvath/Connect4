@@ -15,6 +15,8 @@ type command =
 exception Empty
 exception Malformed
 
+(** [parse_helper inputs obj_phrase] creates a list of strings in obj_phrase
+    without the spaces *)
 let rec parse_helper inputs obj_phrase =
   match inputs with 
   | [] -> List.rev obj_phrase
@@ -27,15 +29,16 @@ let parse input =
   match words with 
   | [] -> raise Empty
   | h::t ->
-    if h = "" then raise Empty else
-    if h = "print" then Print else
-    if h = "start" then Start else
-    if h = "settings" then Settings else
-    if h = "help" then Help else
-    if h = "hand" then Hand else
-    if h = "quit" then Quit else
-    if h = "exit" then Exit else
-    if h = "place" then Place (parse_helper t []) else
-    if h = "save" then Save (parse_helper t []) else
-    if h = "load" then Load (parse_helper t []) else
-      raise Malformed
+    match h,t with 
+    | "", _ -> raise Empty 
+    | "print", [] -> Print
+    | "start", [] -> Start
+    | "settings", [] -> Settings
+    | "help", [] -> Help
+    | "hand", [] -> Hand
+    | "quit", [] -> Quit
+    | "exit", [] -> Exit
+    | "place", x when x != [] -> Place (parse_helper x [])
+    | "save", x when x != [] -> Save (parse_helper x [])
+    | "load", x when x != [] -> Load (parse_helper x [])
+    | _ -> raise Malformed

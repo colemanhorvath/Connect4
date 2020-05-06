@@ -15,7 +15,12 @@ type board = piece list list
 
 exception InvalidRow of int
 
-(* player_turn starts at index 0 for player 1, 1 for player 2, etc
+(* num_players is the number of players in the game
+   rows is the number of rows in the gameboard
+   cols is the number of columns in the gameboard
+   gameboard is a board
+   player_turn is the current player's turn, starts at index 0 for player 1, 
+   1 for player 2, etc
    connect_num is the number of pieces that need to be connected for a win, 
    would be 4 for regular connect 4
    colors is a list of all the colors the players have picked used for 
@@ -24,7 +29,8 @@ exception InvalidRow of int
    1 is no special pieces, 2 is 1 of each special piece, 
    3 is Random chance of receiving special pieces 
    special pieces is a list of the numbers of special pieces each player has 
-   with the format [[num of anvils; wall; bomb; force];[num of anvils; wall; bomb; force]; etc]
+   with the format [[num of anvils; wall; bomb; force];
+   [num of anvils; wall; bomb; force]; etc]
    where index 0 is the special pieces player 1 has, etc.
    is_player_forced is a true if the current player is forced to play their 
    opponent's piece on their turn per the Force special piece, false otherwise. 
@@ -46,7 +52,8 @@ type t = {
 
 type move_result =  Valid of t | Invalid
 
-(** [board_helper col_counter acc] is a board  *)
+(** [board_helper col_counter acc] is used to create a board with the initial
+    number of [col_counter] columns *)
 let rec board_helper col_counter acc =
   if col_counter = 0 then acc else board_helper (col_counter - 1) ([] :: acc)
 
@@ -54,6 +61,8 @@ let rec board_helper col_counter acc =
 let create_board cols = 
   board_helper (cols - 1) [[]]
 
+(** [special_piece_maker] generates a list of the number of each special piece
+    for a player based on the game [mode]  *)
 let special_piece_maker mode = 
   match mode with 
   | 1 -> [0;0;0;0]
@@ -61,6 +70,8 @@ let special_piece_maker mode =
   | 3 -> [Random.int 3; Random.int 3; Random.int 3; Random.int 3]
   | _ -> [0;0;0;0]
 
+(** [special_piece_list_maker] generates a list of lists of the number of each 
+    special piece for each player based on the game [mode]  *)
 let rec special_piece_list_maker mode count acc = 
   if count = 0 then acc 
   else special_piece_list_maker mode (count - 1) (special_piece_maker mode :: acc)
@@ -148,7 +159,8 @@ let is_bomb_piece piece =
   | Bomb _ -> true
   | _ -> false
 
-
+(** [player_piece_decrementer piece_loc pieces_list count acc] decrements the 
+    special piece count at [piece_loc] in [pieces_list] *)
 let rec player_piece_decrementer piece_loc pieces_list count acc = 
   match pieces_list with 
   | [] -> List.rev acc 
@@ -156,6 +168,9 @@ let rec player_piece_decrementer piece_loc pieces_list count acc =
         (count + 1) (x - 1 :: acc)
     else player_piece_decrementer piece_loc xs (count + 1) (x :: acc)
 
+(** [special_piece_decrementer player piece_loc special_pieces_list count acc] 
+    gets the special piece list for [player] in special_pieces_list so it can 
+    be decremented with [player_piece_decrementer] *)
 let rec special_piece_decrementer player piece_loc special_pieces_list count acc = 
   match special_pieces_list with 
   | [] -> List.rev acc 
@@ -163,6 +178,9 @@ let rec special_piece_decrementer player piece_loc special_pieces_list count acc
         xs (count + 1) ((player_piece_decrementer piece_loc x 0 []) :: acc)
     else special_piece_decrementer player piece_loc xs (count + 1) (x :: acc)
 
+(** [special_piece_matcherplayer player piece special_pieces_list] 
+    gets the location of the special piece count in the player's special piece
+    list so it can be decremented with [special_piece_decrementer] *)
 let special_piece_matcher player piece special_pieces_list =
   match piece with 
   | Anvil _ -> special_piece_decrementer player 0 special_pieces_list 0 []
@@ -300,7 +318,8 @@ let get_piece_player p =
   | Force x -> x
   | None -> 10
 
-
+(** [check_col_match column player count connect] checks if there is a match
+    of [connect] pieces for [player] in [column] *)
 let rec check_col_match column player count connect =
   if count = connect then true else 
     match column with
@@ -309,13 +328,18 @@ let rec check_col_match column player count connect =
       if piece_num = player then check_col_match xs player (count + 1) connect
       else false
 
+(** [check_col_win board player col connect max_cols] checks if there is 
+    enough pieces in [col] of [board] for a match of [connect] pieces 
+    so it can be checked for a win in [check_col_match]  *)
+let check_col_win board player col connect max_cols = 
+  if col >= max_cols then false 
+  else 
+    let column = List.nth board col in 
+    if List.length column < connect
+    then false else check_col_match column player 0 connect
 
-let check_col_win board player col connect = 
-  let column = List.nth board col in 
-  if List.length column < connect
-  then false else check_col_match column player 0 connect
-
-
+(** [check_row_match board row player col count last max_cols connect] checks 
+    if there is a match of [connect] pieces for [player] in [row]] *)
 let rec check_row_match board row player col count last max_cols connect = 
   if count = connect then true
   else if col >= max_cols then false
@@ -330,7 +354,10 @@ let rec check_row_match board row player col count last max_cols connect =
       then check_row_match board row player (col + 1) (count + 1) last max_cols connect
       else check_row_match board row player (col + 1) 0 last max_cols connect
 
-
+(** [check_diagonal_lr_match board row player col count inc last max_cols 
+    max_rows connect] checks if there is a diagonal left right match
+    of [connect] pieces for [player] by starting in the leftmost bottom
+    piece in the diagonal and making its way up the diagonal *)
 let rec check_diagonal_lr_match board row player col count inc last max_cols max_rows connect = 
   if count = connect then true
   else if row < 0 || row >= max_rows then false
@@ -346,6 +373,10 @@ let rec check_diagonal_lr_match board row player col count inc last max_cols max
       then check_diagonal_lr_match board (row + 1) player (col + 1) (count + 1) (inc + 1) last max_cols max_rows connect
       else check_diagonal_lr_match board (row + 1) player (col + 1) 0 (inc + 1) last max_cols max_rows connect
 
+(** [check_diagonal_rl_match board row player col count inc last max_cols 
+    max_rows connect] checks if there is a diagonal right left match
+    of [connect] pieces for [player] by starting in the leftmost top
+    piece in the diagonal and making its way down the diagonal *)
 let rec check_diagonal_rl_match board row player col count inc last max_cols max_rows connect = 
   if count = connect then true
   else if row < 0 || row >= max_rows then false
@@ -364,7 +395,7 @@ let rec check_diagonal_rl_match board row player col count inc last max_cols max
 let check_win state player col =
   let col = col - 1 in
   let board = state.gameboard in
-  if check_col_win board player col state.connect_num then true 
+  if check_col_win board player col state.connect_num state.cols then true 
   else 
     let row = (List.nth board col |> List.length) - 1 in 
     let first = (max (col - 3) 0)in 

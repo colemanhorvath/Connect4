@@ -2,6 +2,8 @@
 let exit_game () = 
   exit 0
 
+(** [start_regular_game rows cols players connect colors mode] starts a 
+    custom game with the arguments given. *)
 let start_custom_game rows cols players connect colors mode =
   Game_mechanics.start_game rows cols players connect colors mode
 
@@ -95,6 +97,8 @@ let place_piece state object_phrase player =
     state
 
 
+(** [get_players ()] recursively asks for player to input the number of 
+    players in their game until a valid number between [2,4] is given *)
 (**update to allow for 1 player games *)
 let rec get_players () = 
   let players = 
@@ -106,6 +110,8 @@ let rec get_players () =
     then (Display.pretty_print_string "Invalid players number."; get_players () )
     else p
 
+(** [get_rows ()] recursively asks for player to input a the number of rows
+    they want for their board until a valid number between [4,10] is given *)
 let rec get_rows () = 
   let rows = 
     (read_line (print_endline "\nHow many rows for your board? \n\
@@ -116,6 +122,8 @@ let rec get_rows () =
     then (Display.pretty_print_string "Invalid row number."; get_rows () )
     else r
 
+(** [get_cols ()] recursively asks for player to input a the number of columns
+    they want for their board until a valid number between [4,10] is given *)
 let rec get_cols () = 
   let cols = 
     (read_line (print_endline "\nHow many columns for your board? \n\
@@ -126,6 +134,9 @@ let rec get_cols () =
     then (Display.pretty_print_string "Invalid column number."; get_cols () )
     else c
 
+(** [get_connect rows cols] recursively asks for player to input how 
+    many pieces need to be connected to win the game until a valid number 
+    between [3,6] is returned that isn't too big for the board size  *)
 let rec get_connect rows cols = 
   let connect = 
     (read_line (print_endline "\nHow many pieces do you need to connect to win \
@@ -143,6 +154,9 @@ let rec get_connect rows cols =
           get_connect rows cols ) 
     else c
 
+(** [get_colors player count acc] recursively asks for the player to input a 
+    color for each player of the game and ensure no duplicate colors, returns
+    a list of all the colors for each player in order *)
 let rec get_colors players count acc = 
   if count = (players + 1) then List.rev acc else 
     let prompt = "\nPick a color for player " ^ (string_of_int count) ^ 
@@ -181,6 +195,8 @@ let rec get_colors players count acc =
     then get_colors players count acc 
     else get_colors players (count + 1) (piece_color :: acc)
 
+(** [get_game_mode ()] recursively asks for player to input a game mode
+    until a valid mode 1,2 or 3 is given *)
 let rec get_game_mode () = 
   let mode = 
     (read_line (print_endline "\nWhich game mode would you like to play? \n\
@@ -194,6 +210,9 @@ let rec get_game_mode () =
     then (Display.pretty_print_string "Invalid game mode"; get_game_mode() )
     else m
 
+(** [special_game_setup ()] runs all the prompts for the user to adjust
+    the settings for a custom game, then creates a custom game using 
+    those settings *)
 let special_game_setup () = 
   let players = get_players () in 
   let rows = get_rows () in 
@@ -206,8 +225,9 @@ let special_game_setup () =
 
 (** [rec play_game state] recursively asks for player input one step at a time 
     and handles all possible commands after a game has been started. This 
-    includes [help], [print], [place], and [save]. If a command is empty or 
-    malformed, an explanation is printed and another command is prompted for. *)
+    includes [help], [hand], [print], [save], [place] and [quit]. If a command 
+    is empty or malformed, an explanation is printed and another command 
+    is prompted for. *)
 let rec play_game state = 
   let curr_player = Game_mechanics.get_player_turn state in
   let command = 
@@ -221,10 +241,6 @@ let rec play_game state =
     | Command.Hand ->
       Display.print_hand state curr_player;
       play_game state
-    | Command.Quit ->
-      Display.pretty_print_string "Ending the game and returning to the \
-                                   game setup menu.";
-      game_setup ()
     | Command.Print ->
       Display.print_board state;
       play_game state
@@ -235,6 +251,10 @@ let rec play_game state =
       let new_state = place_piece state object_phrase curr_player in
       Display.print_start_turn new_state;
       play_game new_state
+    | Command.Quit ->
+      Display.pretty_print_string "Ending the game and returning to the \
+                                   game setup menu.";
+      game_setup ()
     | _ -> raise Command.Malformed
   with
   | Command.Empty -> 
@@ -245,7 +265,8 @@ let rec play_game state =
     play_game state
 
 (** [game_setup ()] recursively asks for player input to either [start] the
-    game or [load] a game file and play. If a command is empty, malformed, or a
+    game, go to [settings] to create a custom game, [load] a game file and play, 
+    or [exit] the game console. If a command is empty, malformed, or a
     failure, an explanation is printed and another command is prompted for. *)
 and game_setup () = 
   let command = 
