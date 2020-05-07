@@ -80,9 +80,12 @@ let print_board state =
 
 let print_start_turn state =
   let curr_player = Game_mechanics.get_player_turn state in
+  let color = List.nth (Game_mechanics.get_colors state) (curr_player - 1) in
   print_board state;
-  print_endline(String.concat "" 
-                  ["Player "; string_of_int curr_player; ", your move."])
+  (ANSITerminal.(print_string [color] (String.concat "" 
+                                         ["Player "; string_of_int curr_player;
+                                          ", your move."]);));
+  print_newline ()
 
 let print_help () =
   print_newline ();
