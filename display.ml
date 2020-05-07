@@ -85,7 +85,18 @@ let print_start_turn state =
   (ANSITerminal.(print_string [color] (String.concat "" 
                                          ["Player "; string_of_int curr_player;
                                           ", your move."]);));
-  print_newline ()
+  print_newline ();
+  if Game_mechanics.is_forced state then 
+    let force_player = Game_mechanics.get_prev_player_turn state in 
+    let force_color = List.nth (Game_mechanics.get_colors state) 
+        (force_player-1) in 
+    let force_warning = 
+      String.concat "" [
+        "You are currently placing one of Player "; 
+        string_of_int (force_player);
+        "'s pieces."] in 
+    ANSITerminal.(print_string [force_color] force_warning); 
+    print_newline ()
 
 let print_help () =
   print_newline ();
