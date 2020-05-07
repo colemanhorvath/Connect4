@@ -35,5 +35,27 @@
     [],
     []
   ],
-  "player_turn": "1"
+  "player_turn": "1",
+  "connect_num": "4",
+  "colors": [
+    "Yellow",
+    "Red"
+  ],
+  "game_mode": "2",
+  "special_pieces": [
+    [
+      "1",
+      "1",
+      "1",
+      "1"
+    ],
+    [
+      "1",
+      "1",
+      "1",
+      "1"
+    ]
+  ],
+  "is_player_forced": "false",
+  "is_awaiting_bomb": "false"
 }

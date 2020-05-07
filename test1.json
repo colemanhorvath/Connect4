@@ -1,15 +1,1 @@
-{
-  "num_players": "2",
-  "rows": "7",
-  "cols": "7",
-  "gameboard": [
-    [],
-    [],
-    [],
-    [],
-    [],
-    [],
-    []
-  ],
-  "player_turn": "0"
-}
+{"num_players":"2","rows":"7","cols":"7","gameboard":[[],[],[],[],[],[],[]],"player_turn":"0","connect_num":"4","colors":["Yellow","Red"],"game_mode":"1","special_pieces":[["0","0","0","0"],["0","0","0","0"]],"is_player_forced":"false","is_awaiting_bomb":"false"}

@@ -22,14 +22,39 @@ let save st filename =
 let to_piece json = 
   let piece_type = json |> member "type" |> to_string in 
   let player = json |> member "player" |> to_string |> int_of_string in 
-  if piece_type = "Normal" then (Game_mechanics.Normal player) else
-  if piece_type = "Bomb" then (Game_mechanics.Bomb player) else
-    Game_mechanics.None
+  match piece_type with 
+  | "Normal" -> Game_mechanics.Normal player
+  | "Bomb" -> Game_mechanics.Bomb player
+  | "Anvil" -> Game_mechanics.Anvil player 
+  | "Force" -> Game_mechanics.Force player 
+  | "Wall" -> Game_mechanics.Wall
+  | _ -> Game_mechanics.None
 
 (** [map_cols json] is the list of pieces in [json] which encodes one column
     of a gameboard]*)
 let map_cols json = 
   json |> to_list |> List.map to_piece 
+
+(** [to_style s] is the ANSITerminal.style represented by [s]*)
+let to_style s = 
+  match s with 
+  | "Red" -> ANSITerminal.red
+  | "Green" -> ANSITerminal.green
+  | "Yellow" -> ANSITerminal.yellow
+  | "Blue" -> ANSITerminal.blue
+  | "Magenta" -> ANSITerminal.magenta
+  | "Cyan" -> ANSITerminal.cyan
+  | _ -> failwith "Illegal Color"
+
+(** [map_colors json] is the list of colors of the players as encoded in 
+    [json]*)
+let map_colors json = 
+  json |> to_string |> to_style
+
+(** [map_sps json] is the int list representation of the player's special
+    pieces encoded in [json]*)
+let map_sps json =
+  json |> to_list |> List.map to_string |> List.map int_of_string
 
 (** [from_json json] is the game state as is encoded in [json].*)
 let from_json json = 
@@ -43,8 +68,20 @@ let from_json json =
               |> to_list |> List.map map_cols in 
   let turn = json |> member "player_turn"
              |> to_string |> int_of_string in 
-  (* TODO: update with new features *)
-  Game_mechanics.load_game num_players rows cols board turn 0 [] 0 false false
+  let connect_num = json |> member "connect_num" 
+                    |> to_string |> int_of_string in 
+  let colors = json |> member "colors" 
+               |> to_list |> List.map map_colors in 
+  let mode = json |> member "game_mode"
+             |> to_string |> int_of_string in 
+  let sps = json |> member "special_pieces"
+            |> to_list |> List.map map_sps in 
+  let force = json |> member "is_player_forced"
+              |> to_string |> bool_of_string in 
+  let bomb = json |>member "is_awaiting_bomb"
+             |> to_string |> bool_of_string in 
+  Game_mechanics.load_game num_players rows cols board turn connect_num colors
+    mode sps force bomb
 
 let load filename = 
   let json = try Yojson.Basic.from_file filename with

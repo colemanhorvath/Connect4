@@ -1,0 +1,93 @@
+{
+  "num_players": "3",
+  "rows": "8",
+  "cols": "8",
+  "gameboard": [
+    [
+      {
+        "type": "Normal",
+        "player": "1"
+      }
+    ],
+    [
+      {
+        "type": "Anvil",
+        "player": "1"
+      }
+    ],
+    [
+      {
+        "type": "Force",
+        "player": "2"
+      },
+      {
+        "type": "Normal",
+        "player": "2"
+      }
+    ],
+    [
+      {
+        "type": "Normal",
+        "player": "1"
+      }
+    ],
+    [
+      {
+        "type": "Normal",
+        "player": "3"
+      },
+      {
+        "type": "Wall",
+        "player": "0"
+      }
+    ],
+    [
+      {
+        "type": "Normal",
+        "player": "3"
+      }
+    ],
+    [
+      {
+        "type": "Force",
+        "player": "1"
+      }
+    ],
+    [
+      {
+        "type": "Bomb",
+        "player": "2"
+      }
+    ]
+  ],
+  "player_turn": "2",
+  "connect_num": "5",
+  "colors": [
+    "Green",
+    "Yellow",
+    "Red"
+  ],
+  "game_mode": "2",
+  "special_pieces": [
+    [
+      "0",
+      "1",
+      "1",
+      "0"
+    ],
+    [
+      "1",
+      "1",
+      "0",
+      "0"
+    ],
+    [
+      "1",
+      "0",
+      "1",
+      "1"
+    ]
+  ],
+  "is_player_forced": "true",
+  "is_awaiting_bomb": "false"
+}

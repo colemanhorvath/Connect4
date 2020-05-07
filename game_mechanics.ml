@@ -78,10 +78,8 @@ let rec special_piece_list_maker mode count acc =
   if count = 0 then acc 
   else special_piece_list_maker mode (count - 1) (special_piece_maker mode :: acc)
 
-(* will need to update this for load, if loading an old game the special_pieces 
-   should be saved, not made from scratch *)
-let load_game players rows cols board turn connect colors mode bomb 
-    force = {
+let load_game players rows cols board turn connect colors mode sps force 
+    bomb = {
   num_players = players;
   rows = rows;
   cols = cols; 
@@ -90,14 +88,14 @@ let load_game players rows cols board turn connect colors mode bomb
   connect_num = connect;
   colors = colors;
   game_mode = mode;
-  special_pieces = special_piece_list_maker mode players [];
-  is_awaiting_bomb = bomb;
+  special_pieces = sps;
   is_player_forced = force;
+  is_awaiting_bomb = bomb;
 }
 
 let start_game rows cols players connect colors mode = 
   load_game players rows cols (create_board cols) 0 connect colors mode 
-    false false
+    (special_piece_list_maker mode players []) false false
 
 let create_piece piece_type player = 
   match piece_type with 
@@ -288,7 +286,7 @@ let string_of_piece p =
     let player = string_of_int p in 
     String.concat "" ["{\"type\":\"Anvil\",\"player\":\""; player; "\"}"]
   | Wall -> 
-    String.concat "" ["{\"type\":\"Wall\":\"\"}"]
+    String.concat "" ["{\"type\":\"Wall\",\"player\":\"0\"}"]
   | Bomb p -> 
     let player = string_of_int p in 
     String.concat "" ["{\"type\":\"Bomb\",\"player\":\""; player; "\"}"]
@@ -298,8 +296,7 @@ let string_of_piece p =
 
 (** [string_of_col col] is the JSON string representation of piece list [col].*)
 let string_of_col col = 
-  if col = [] then "" else
-    String.concat "," (List.map string_of_piece col)
+  String.concat "," (List.map string_of_piece col)
 
 (** [string_of_board board] is the JSON string representation of 
     gameboard [board]. *)
@@ -307,18 +304,58 @@ let string_of_board board =
   let body = String.concat "],[" (List.map string_of_col board) in 
   String.concat "" ["[["; body; "]]"]
 
+(** [string_of_color c] is the string of color of [c]*)
+let string_of_color c =
+  match c with 
+  | ANSITerminal.Foreground Red -> "\"Red\""
+  | ANSITerminal.Foreground Green -> "\"Green\""
+  | ANSITerminal.Foreground Yellow -> "\"Yellow\""
+  | ANSITerminal.Foreground Blue -> "\"Blue\""
+  | ANSITerminal.Foreground Magenta -> "\"Magenta\""
+  | ANSITerminal.Foreground Cyan -> "\"Cyan\""
+  | _ -> "Illegal Color"
+
+(** [string_of_colors colors] is the JSON string representation of [colors]*)
+let string_of_colors colors = 
+  let body = String.concat "," (List.map string_of_color colors) in 
+  String.concat "" ["["; body; "]"]
+
+(** [string_of_player_sp player_sps] is the JSON string representation of 
+    one player's special pieces [player_sps]. *)
+let string_of_player_sp player_sps = 
+  let body = String.concat "\",\"" (List.map string_of_int player_sps) in 
+  String.concat "" ["\""; body; "\""]
+
+(** [string_of_special_pieces sps] is the JSON string representation of all
+    players' special pieces [sps]*)
+let string_of_special_pieces sps = 
+  let body = String.concat "],[" (List.map string_of_player_sp sps) in 
+  String.concat "" ["[["; body; "]]"]
+
 let to_json_string st = 
   let np_str = string_of_int st.num_players in 
   let row_str = string_of_int st.rows in 
   let col_str = string_of_int st.cols in 
   let board_str = string_of_board st.gameboard in 
-  let turn_str = string_of_int st.player_turn in 
+  let turn_str = string_of_int st.player_turn in
+  let connect_str = string_of_int st.connect_num in 
+  let colors_str = string_of_colors st.colors in 
+  let mode_str = string_of_int st.game_mode in 
+  let special_str = string_of_special_pieces st.special_pieces in 
+  let forced_str = string_of_bool st.is_player_forced in 
+  let bomb_str = string_of_bool st.is_awaiting_bomb in 
   String.concat "," [
     String.concat "" ["{\"num_players\":\""; np_str; "\""];
     String.concat "" ["\"rows\":\""; row_str; "\""];
     String.concat "" ["\"cols\":\""; col_str; "\""];
     String.concat "" ["\"gameboard\":"; board_str];
     String.concat "" ["\"player_turn\":\""; turn_str; "\""];
+    String.concat "" ["\"connect_num\":\""; connect_str; "\""];
+    String.concat "" ["\"colors\":"; colors_str];
+    String.concat "" ["\"game_mode\":\""; mode_str; "\""];
+    String.concat "" ["\"special_pieces\":"; special_str];
+    String.concat "" ["\"is_player_forced\":\""; forced_str; "\""];
+    String.concat "" ["\"is_awaiting_bomb\":\""; bomb_str; "\"}"];
   ]
 
 (** [get_piece_player p] is the player whose piece is p, the Wall has no 

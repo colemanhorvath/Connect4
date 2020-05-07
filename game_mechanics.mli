@@ -56,7 +56,7 @@ type move_result =  Valid of t | Invalid
     depending on if the current player must bomb or place an opponent's piece 
     on their turn. *)
 val load_game: int -> int -> int -> board -> int -> int -> 
-  ANSITerminal.style list -> int -> bool -> bool -> t
+  ANSITerminal.style list -> int -> int list list-> bool -> bool -> t
 
 (** [start_game rows cols players connect colors mode] is the initial state of 
     the game with a [rows] x [cols] board, [players] number of players, victory
