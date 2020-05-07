@@ -92,10 +92,25 @@ let print_help () =
   print_endline("Here are the possible commands");
   print_endline("[help] - displays list of possible commands");
   print_endline("[print] - pretty prints the current board");
-  print_endline("[place column] - places a piece on the board at column, \
-                 starting at column 1");
+  print_endline("[hand] - displays list of special pieces in your hand");
+  print_endline("[place column] - places a normal piece on the board at \
+                 [column], starting at column 1");
+  print_endline("[place bomb column] - places a bomb on the board at \
+                 [column], starting at column 1. You will then be prompted for \
+                 the row and column of the piece you want to remove");
+  print_endline("[place force column] - places a force on the board at \
+                 [column], starting at column 1. The next player will then \
+                 first put down a normal piece of your color before taking \
+                 their own turn");
+  print_endline("[place anvil column] - places an anvil on the board at \
+                 [column], starting at column 1. All other pieces in that \
+                 column will be removed");
+  print_endline("[place wall column] - places a wall on the board at \
+                 [column], starting at column 1. The wall does not count for \
+                 any player's color and after placing it you will be prompted \
+                 to place another piece");
   print_endline("[save filepath] - saves a json file of the current game \
-                 state to filepath");
+                 state to [filepath]");
   print_newline ()
 
 let print_hand state player =
