@@ -148,8 +148,10 @@ let make_special_win_test2
   name >:: (fun _ ->
       assert_equal (check_win game_state player col) expected_output)
 
-let check_pieces_equal p p2 = 
-  match p, p2 with
+(** [rec check_pieces_equal p1 p2] is true if the pieces [p1] and [p2] are the 
+    same type and same player number. *)
+let check_pieces_equal p1 p2 = 
+  match p1, p2 with
   | None, None -> true
   | Wall, Wall -> true
   | Normal i, Normal i2 -> i = i2
@@ -158,6 +160,8 @@ let check_pieces_equal p p2 =
   | Force i, Force i2 -> i = i2
   | _ -> false
 
+(** [rec check_cols_equal c1 c2] is true if the pieces and players of pieces 
+    match at each index of lists [c1] and [c2]. *)
 let rec check_cols_equal c1 c2 =
   match c1, c2 with
   | [], [] -> true
@@ -165,6 +169,8 @@ let rec check_cols_equal c1 c2 =
     if check_pieces_equal h h2 then check_cols_equal t t2 else false
   | _ -> false
 
+(** [rec check_boards_equal board1 board2] is true if the pieces and players of
+    pieces match at each index of list of lists [board1] and [board2]. *)
 let rec check_boards_equal board1 board2 =
   match board1, board2 with
   | [], [] -> true
@@ -187,12 +193,9 @@ let make_bomb_test
   try 
     let game_state = test_special_moves start_state moves_list in 
     let res = bomb game_state row col in
-    print_board_from_board expected_board;
-    print_board game_state;
     match res with
     | Invalid -> raise (InvalidRow row)
     | Valid new_state -> 
-      print_board new_state;
       let new_board = get_gameboard new_state in
       name >:: (fun _ ->
           assert_equal ( check_boards_equal new_board expected_board) true)
@@ -201,6 +204,43 @@ let make_bomb_test
     name >:: (fun _ ->
         assert_equal ( invalid_bool) true)
 
+(** [rec check_hands_equal hand1 hand2] is true if the ints in [hand1] and 
+    [hand2] at the same index are equal. *)
+let rec check_hands_equal hand1 hand2 =
+  match hand1, hand2 with
+  | [], [] -> true
+  | h::t, h2::t2 -> 
+    if h=h2 then check_hands_equal t t2 else false
+  | _ -> false
+
+(** [make_hand_test name start_state moves_list player expected_hand] makes an 
+    OUnit test named [name] that checks if the moves [moves_list] on 
+    [start_state] results in [expected_hand] of special moves for [player]. *)
+let make_hand_test
+    (name: string)
+    (start_state)
+    (moves_list)
+    (player)
+    (expected_hand) = 
+  let game_state = test_special_moves start_state moves_list in 
+  let hand = get_player_hand game_state player in
+  name >:: (fun _ ->
+      assert_equal ( check_hands_equal expected_hand hand) true)
+
+(** [make_hand_test name start_state moves_list player expected_hand] makes an 
+    OUnit test named [name] that checks if the moves [moves_list] on 
+    [start_state] results in [expected_hand] of special moves for [player]. *)
+let make_num_pieces_test
+    (name: string)
+    (start_state)
+    (moves_list)
+    (player)
+    (piece_type)
+    (expected_num) = 
+  let game_state = test_special_moves start_state moves_list in 
+  let num = get_num_of_piece_type game_state player piece_type in
+  name >:: (fun _ ->
+      assert_equal num expected_num )
 
 let start = start_game 6 7 2 4 [ANSITerminal.yellow; ANSITerminal.red] 1;;
 
@@ -291,12 +331,34 @@ let make_bomb_tests = [
                       [(1,"n"); (1,"n"); (2,"n"); (2,"n")]));
 ]
 
+let make_hand_tests = [
+  make_hand_test "empty hand" start [] 1 [0; 0; 0; 0];
+  make_num_pieces_test "zero pieces" start [] 1 "anvil" 0;
+
+  make_hand_test "special start" special_start [] 1 [1; 1; 1; 1];
+  make_num_pieces_test "1 of each piece" special_start [] 1 "bomb" 1;
+
+  make_hand_test "special start, player 2" special_start [] 2 [1; 1; 1; 1];
+  make_num_pieces_test "1 of each piece, player 2" special_start [] 1 "force" 1;
+
+  make_hand_test "special start with moves" special_start 
+    [(1,"w"); (1,"n"); (1,"n"); (1,"n"); (1,"n"); (1,"a")] 1 [0; 0; 1; 1];
+  make_num_pieces_test "removed piece, wall" special_start 
+    [(1,"w"); (1,"n"); (1,"n"); (1,"n"); (1,"n"); (1,"a")] 1 "wall" 0;
+
+  make_hand_test "special start with moves, player 2" special_start 
+    [(1,"n"); (1,"f"); (1,"n"); (1,"n"); (1,"b"); (1,"n")] 2 [1; 1; 0; 0];
+  make_num_pieces_test "removed piece, force, player 2" special_start 
+    [(1,"n"); (1,"f"); (1,"n"); (1,"n"); (1,"b"); (1,"n")] 2 "force" 0;
+]
+
 let suite =
   "test suite for command"  >::: List.flatten [
     win_tests;
     draw_tests;
     special_win_tests;
     make_bomb_tests;
+    make_hand_tests;
   ]
 
 let _ = run_test_tt_main suite
