@@ -145,6 +145,6 @@ val change_connect_num : t -> int -> t
 (** [is_ai_active state] is true if the ai is playing in [state]*)
 val is_ai_active : t -> bool
 
-(** [toggle_ai state] is [state] with the opposite value for whether AI is
-    active.*)
+(** [toggle_ai state] is Valid [state] with the opposite value for whether AI is
+    active and Invalid if AI cannot be toggled.*)
 val toggle_ai : t -> move_result
