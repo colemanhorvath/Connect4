@@ -1,3 +1,10 @@
+(** 
+   Representation of the commands the player may enter
+
+   This module provides the ability to parse player input into one of a 
+   number of possible recognized commands.
+*)
+
 (** Type [object_phrase] is a list of the words to specify the objects
     of the user's input command. *)
 type object_phrase = string list

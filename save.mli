@@ -1,3 +1,8 @@
+(** 
+   This module provides functions for saving and loading the game to and from
+   JSON files. 
+*)
+
 (** Type [save_result] represents the result of attempting a save command/
     [Save_Success s] indicates the file was successfully saved to the file 
     named [s]

@@ -1,3 +1,10 @@
+(** 
+   Representation of the state of the game
+
+   This module represents the state of the game in all its facets and 
+   contains functions that alter and interact with the state of the game.
+*)
+
 (** The type of the game pieces. *)
 type piece = 
   | None

@@ -1,3 +1,10 @@
+(** 
+   Representation of the display of the game
+
+   This module provides functions that print out various aspects of the 
+   game state.
+*)
+
 (** [print_board state] pretty prints the connect 4 board based on [state]. *)
 val print_board: Game_mechanics.t -> unit
 
