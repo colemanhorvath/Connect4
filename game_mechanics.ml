@@ -232,7 +232,7 @@ let rec bomb_board board row_i col_i iterator =
     if iterator <> col_i then column::(bomb_board t row_i col_i (iterator + 1))
     else if row_i > num_rows then raise (InvalidRow row_i)
     else (bomb_board_helper column row_i num_rows)
-      ::(bomb_board t row_i col_i (iterator + 1))
+         ::(bomb_board t row_i col_i (iterator + 1))
 
 let bomb state row col =
   try
@@ -250,17 +250,6 @@ let bomb state row col =
 
 let change_connect_num state n = 
   {state with connect_num = n}
-
-let is_ai_active state = state.ai_active
-
-(** [is_standard st] is true if [st] represents a standard connect 4 game with
-    2 players in a 7x7 board with no special pieces and normal colors*)
-let is_standard st = 
-  (st.num_players = 2 && st.rows = 7 && st.cols = 7 && st.connect_num = 4 
-   && st.colors = [ANSITerminal.yellow; ANSITerminal.red] && st.game_mode = 1)
-
-let toggle_ai state = if is_standard state then 
-    Valid {state with ai_active = not (is_ai_active state)} else Invalid
 
 let get_gameboard state = 
   state.gameboard
@@ -389,27 +378,32 @@ let get_piece_player p =
   | Force x -> x
   | None -> 10
 
-
+(** [check_bounds row col max_rows max_cols] checks that row and col
+    are within bounds of 0 and [max_rows] and 0 and [max_cols] respectively *)
 let check_bounds row col max_rows max_cols = 
   if row < 0 || row >= max_rows then true
   else if col < 0 || col >= max_cols then true
   else false
 
+(** [check_col_win column player count connect] checks if there has been enough
+    consecutive pieces counted for a column win *)
+let rec check_col_win column player count connect =
+  if count = connect then true else 
+    check_col_match column player count connect
 
 (** [check_col_match column player count connect] checks if there is a match
     of [connect] pieces for [player] in [column] *)
-let rec check_col_match column player count connect =
-  if count = connect then true else 
-    match column with
-    | [] -> false
-    | x :: xs -> let piece_num = get_piece_player x in 
-      if piece_num = player then check_col_match xs player (count + 1) connect
-      else false
+and check_col_match column player count connect =
+  match column with
+  | [] -> false
+  | x :: xs -> let piece_num = get_piece_player x in 
+    if piece_num = player then check_col_win xs player (count + 1) connect
+    else false
 
-(** [check_col_win board player col connect max_cols] checks if there is 
+(** [check_col_bounds board player col connect max_cols] checks if there is 
     enough pieces in [col] of [board] for a match of [connect] pieces 
     so it can be checked for a win in [check_col_match]  *)
-let check_col_win board player col connect max_cols = 
+let check_col_bounds board player col connect max_cols = 
   if col >= max_cols then false 
   else 
     let column = List.nth board col in 
@@ -419,18 +413,22 @@ let check_col_win board player col connect max_cols =
 (** [check_row_match board row player col count last max_cols connect] checks 
     if there is a match of [connect] pieces for [player] in [row] *)
 let rec check_row_match board row player col count last max_cols connect = 
+  let col_len = (List.nth board col |> List.length) in 
+  if col_len <= row 
+  then check_row_bounds board row player (col + 1) 0 last max_cols connect
+  else let piece = List.nth (List.nth board col) (col_len - row - 1) in
+    let piece_num = get_piece_player piece in
+    if piece_num = player 
+    then check_row_bounds board row player (col + 1) (count + 1) last 
+        max_cols connect
+    else check_row_bounds board row player (col + 1) 0 last max_cols connect
+
+(** [check_row_bounds board row player col count last max_cols connect]
+    checks if there is already a win or if the col argument is out of bounds *)
+and check_row_bounds board row player col count last max_cols connect = 
   if count = connect then true
-  else if (check_bounds 0 col 1 max_cols) || col = last then false
-  else
-    let col_len = (List.nth board col |> List.length) in 
-    if col_len <= row 
-    then check_row_match board row player (col + 1) 0 last max_cols connect
-    else let piece = List.nth (List.nth board col) (col_len - row - 1) in
-      let piece_num = get_piece_player piece in
-      if piece_num = player 
-      then check_row_match board row player (col + 1) (count + 1) last 
-          max_cols connect
-      else check_row_match board row player (col + 1) 0 last max_cols connect
+  else if check_bounds 0 col 1 max_cols || col = last then false
+  else check_row_match board row player col count last max_cols connect
 
 (** [check_diagonal_lr_match board row player col count inc last max_cols 
     max_rows connect] checks if there is a diagonal left right match
@@ -438,63 +436,77 @@ let rec check_row_match board row player col count last max_cols connect =
     piece in the diagonal and making its way up the diagonal *)
 let rec check_diagonal_lr_match board row player col count inc last max_cols 
     max_rows connect = 
-  if count = connect then true
-  else if (check_bounds row col max_rows max_cols) || inc = last then false
-  else
-    let col_len = (List.nth board col |> List.length) in 
-    if col_len <= row 
-    then check_diagonal_lr_match board (row + 1) player (col + 1) 0 (inc + 1) 
+  let col_len = (List.nth board col |> List.length) in 
+  if col_len <= row 
+  then check_diagonal_lr_bounds board (row + 1) player (col + 1) 0 (inc + 1) 
+      last max_cols max_rows connect
+  else let piece = List.nth (List.nth board col) (col_len - row - 1) in
+    let piece_num = get_piece_player piece in
+    if piece_num = player 
+    then check_diagonal_lr_bounds board (row + 1) player (col + 1) (count + 1) 
+        (inc + 1) last max_cols max_rows connect
+    else check_diagonal_lr_bounds board (row + 1) player (col + 1) 0 (inc + 1) 
         last max_cols max_rows connect
-    else let piece = List.nth (List.nth board col) (col_len - row - 1) in
-      let piece_num = get_piece_player piece in
-      if piece_num = player 
-      then check_diagonal_lr_match board (row + 1) player (col + 1) (count + 1) 
-          (inc + 1) last max_cols max_rows connect
-      else check_diagonal_lr_match board (row + 1) player (col + 1) 0 (inc + 1) 
-          last max_cols max_rows connect
+
+(** [check_diagonal_lr_bounds board row player col count inc last max_cols 
+    max_rows connect] checks if there is already a win or if the row
+    and col arguments are out of bounds *)
+and check_diagonal_lr_bounds board row player col count inc last max_cols 
+    max_rows connect = 
+  if count = connect then true
+  else if check_bounds row col max_rows max_cols || inc = last then false
+  else
+    check_diagonal_lr_match board row player col count inc last max_cols 
+      max_rows connect
 
 (** [check_diagonal_rl_match board row player col count inc last max_cols 
     max_rows connect] checks if there is a diagonal right left match
     of [connect] pieces for [player] by starting in the leftmost top
     piece in the diagonal and making its way down the diagonal *)
 let rec check_diagonal_rl_match board row player col count inc last max_cols 
+    max_rows connect =
+  let col_len = (List.nth board col |> List.length) in 
+  if col_len <= row 
+  then check_diagonal_rl_bounds board (row - 1) player (col + 1) 0 (inc + 1) 
+      last max_cols max_rows connect
+  else let piece = List.nth (List.nth board col) (col_len - row - 1) in
+    let piece_num = get_piece_player piece in
+    if piece_num = player 
+    then check_diagonal_rl_bounds board (row - 1) player (col + 1) (count + 1) 
+        (inc + 1) last max_cols max_rows connect
+    else check_diagonal_rl_bounds board (row - 1) player (col + 1) 0 (inc + 1) 
+        last max_cols max_rows connect
+
+(** [check_diagonal_rl_bounds board row player col count inc last max_cols 
+    max_rows connect] checks if there is already a win or if the row
+    and col arguments are out of bounds *)
+and check_diagonal_rl_bounds board row player col count inc last max_cols 
     max_rows connect = 
   if count = connect then true
-  else if (check_bounds row col max_rows max_cols) || inc = last then false
+  else if check_bounds row col max_rows max_cols || inc = last then false
   else
-    let col_len = (List.nth board col |> List.length) in 
-    if col_len <= row 
-    then check_diagonal_rl_match board (row - 1) player (col + 1) 0 (inc + 1) 
-        last max_cols max_rows connect
-    else let piece = List.nth (List.nth board col) (col_len - row - 1) in
-      let piece_num = get_piece_player piece in
-      if piece_num = player 
-      then check_diagonal_rl_match board (row - 1) player (col + 1) (count + 1) 
-          (inc + 1) last max_cols max_rows connect
-      else check_diagonal_rl_match board (row - 1) player (col + 1) 0 (inc + 1) 
-          last max_cols max_rows connect
+    check_diagonal_rl_match board row player col count inc last max_cols 
+      max_rows connect
+
 
 let check_win state player col =
   let col = col - 1 in
   let board = state.gameboard in
-  if check_col_win board player col state.connect_num state.cols then true 
-  else
-    let row = (List.nth board col |> List.length) - 1 in 
-    let first = (max (col - 3) 0)in 
-    let last = (min (col + 4) state.cols) in 
-    if check_row_match board row player first 0 last state.cols 
-        state.connect_num then true 
-    else 
-      let rowbegin = (max (row - 3) 0) in
-      let colbegin = (max (col - 3) 0) in
-      let start = (min (row - rowbegin) (col - colbegin)) in 
-      if check_diagonal_lr_match board (row - start) player 
-          (col - start) 0 0 7 state.cols state.rows state.connect_num then true 
-      else  
-        let rowbegin = (min (row + 3) (state.rows - 1)) in
-        let start = (min (rowbegin - row) (col - colbegin)) in 
-        check_diagonal_rl_match board (row + start) player 
-          (col - start) 0 0 7 state.cols state.rows state.connect_num
+  let row = (List.nth board col |> List.length) - 1 in 
+  let first = (max (col - 3) 0)in 
+  let last = (min (col + 4) state.cols) in 
+  let rowbeginlr = (max (row - 3) 0) in
+  let colbegin = (max (col - 3) 0) in
+  let startlr = (min (row - rowbeginlr) (col - colbegin)) in 
+  let rowbeginrl = (min (row + 3) (state.rows - 1)) in
+  let startrl = (min (rowbeginrl - row) (col - colbegin)) in 
+  check_col_bounds board player col state.connect_num state.cols ||
+  check_row_bounds board row player first 0 last state.cols 
+    state.connect_num ||
+  check_diagonal_lr_bounds board (row - startlr) player 
+    (col - startlr) 0 0 7 state.cols state.rows state.connect_num ||
+  check_diagonal_rl_bounds board (row + startrl) player 
+    (col - startrl) 0 0 7 state.cols state.rows state.connect_num
 
 (** [rec check_draw_helper state board] is recursively true if the board is
     completely full of pieces, false otherwise. *)
@@ -525,3 +537,13 @@ let is_forced state =
 
 let is_bombed state =
   state.is_awaiting_bomb
+
+let is_ai_active state = 
+  state.ai_active
+
+let is_standard st = 
+  (st.num_players = 2 && st.rows = 7 && st.cols = 7 && st.connect_num = 4 
+   && st.game_mode = 1)
+
+let toggle_ai state = if is_standard state then 
+    Valid {state with ai_active = not (is_ai_active state)} else Invalid

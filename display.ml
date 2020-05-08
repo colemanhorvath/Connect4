@@ -70,6 +70,14 @@ let rec board_string st board row_index =
     print_newline ();
     row_string st board row_index
 
+let print_player state = 
+  let curr_player = Game_mechanics.get_player_turn state in
+  let color = List.nth (Game_mechanics.get_colors state) (curr_player - 1) in
+  (ANSITerminal.(print_string [color] (String.concat "" 
+                                         ["Player "; string_of_int curr_player;
+                                          ", your move."]);));
+  print_newline ()
+
 let print_board state = 
   let board = Game_mechanics.get_gameboard state in
   let num_rows = fst (Game_mechanics.get_dimensions state) in
@@ -78,12 +86,8 @@ let print_board state =
   print_newline ()
 
 let print_start_turn state =
-  let curr_player = Game_mechanics.get_player_turn state in
-  let color = List.nth (Game_mechanics.get_colors state) (curr_player - 1) in
   print_board state;
-  (ANSITerminal.(print_string [color] (String.concat "" 
-                                         ["Player "; string_of_int curr_player;
-                                          ", your move."]);));
+  print_player state;
   print_newline ();
   if Game_mechanics.is_forced state then 
     let force_player = Game_mechanics.get_prev_player_turn state in 
@@ -97,14 +101,14 @@ let print_start_turn state =
     ANSITerminal.(print_string [force_color] force_warning); 
     print_newline ()
 
-let print_help mode =
+let print_help state =
   print_newline ();
   print_endline("Here are the possible commands");
   print_endline("[help] - displays list of possible commands");
   print_endline("[print] - pretty prints the current board");
   print_endline("[hand] - displays list of special pieces in your hand \
                  (0 for all special pieces if playing regular Connect 4)");
-  if mode != 1 then (
+  if Game_mechanics.get_gamemode state != 1 then (
     print_endline("[place column] - places a normal piece on the board at \
                    [column], starting at column 1");
     print_endline("[place bomb column] - places a bomb on the board at \
@@ -121,9 +125,14 @@ let print_help mode =
                    [column], starting at column 1. The wall does not count \
                    for any player's color and after placing it you will be \
                    prompted to place another piece"); )
-  else
+  else if Game_mechanics.is_standard state then (
+    print_endline("[place column] - places a normal piece on the board at \
+                   [column], starting at column 1");
     print_endline("[toggle] - toggles AI Player 2. Only usable in a regular \
-                   game");
+                   Connect 4 2 player game"); )
+  else     
+    print_endline("[place column] - places a normal piece on the board at \
+                   [column], starting at column 1");
   print_endline("[save filepath] - saves a json file of the current game \
                  state to [filepath]");
   print_newline ()

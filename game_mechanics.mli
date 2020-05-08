@@ -145,6 +145,10 @@ val change_connect_num : t -> int -> t
 (** [is_ai_active state] is true if the ai is playing in [state]*)
 val is_ai_active : t -> bool
 
+(** [is_standard st] is true if [st] represents a standard connect 4 game with
+    2 players in a 7x7 board with no special pieces and normal colors*)
+val is_standard : t -> bool
+
 (** [toggle_ai state] is Valid [state] with the opposite value for whether AI is
     active and Invalid if AI cannot be toggled.*)
 val toggle_ai : t -> move_result

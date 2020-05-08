@@ -243,44 +243,50 @@ let rec get_connect rows cols =
           get_connect rows cols ) 
     else c
 
+(** [check_color_valid_dup color list] checks if [color] is valid or a already 
+    in [list] and if so gives a helpful message and returns the style color 
+    black and if not returns the color as a style  *)
+let check_color_valid_dup color list = 
+  match color with 
+  | "Red" -> if List.mem ANSITerminal.red list 
+    then (Display.pretty_print_string "Please input a different color.";
+          ANSITerminal.black)
+    else ANSITerminal.red
+  | "Green" -> if List.mem ANSITerminal.green list
+    then (Display.pretty_print_string "Please input a different color.";
+          ANSITerminal.black)
+    else ANSITerminal.green
+  | "Yellow" -> if List.mem ANSITerminal.yellow list
+    then (Display.pretty_print_string "Please input a different color.";
+          ANSITerminal.black)
+    else ANSITerminal.yellow
+  | "Blue" -> if List.mem ANSITerminal.blue list 
+    then (Display.pretty_print_string "Please input a different color.";
+          ANSITerminal.black)
+    else ANSITerminal.blue
+  | "Magenta" -> if List.mem ANSITerminal.magenta list 
+    then (Display.pretty_print_string "Please input a different color.";
+          ANSITerminal.black)
+    else ANSITerminal.magenta
+  | "Cyan" -> if List.mem ANSITerminal.cyan list 
+    then (Display.pretty_print_string "Please input a different color.";
+          ANSITerminal.black)
+    else ANSITerminal.cyan
+  | _ -> Display.pretty_print_string "Please input a valid color."; 
+    ANSITerminal.black
+
 (** [get_colors player count acc] recursively asks for the player to input a 
     color for each player of the game and ensure no duplicate colors, returns
     a list of all the colors for each player in order *)
 let rec get_colors players count acc = 
-  if count = (players + 1) then List.rev acc else 
+  if count = (players + 1) then List.rev acc 
+  else 
     let prompt = "\nPick a color for player " ^ (string_of_int count) ^ 
                  ".\nThe options are \"Red\", \"Green\", \"Yellow\", \"Blue\", \
                   \"Magenta\", or \"Cyan\"" in
     let color = (read_line (print_endline prompt)) in 
-    let piece_color = 
-      match color with 
-      | "Red" -> if List.mem ANSITerminal.red acc 
-        then (Display.pretty_print_string "Please input a different color.";
-              ANSITerminal.black)
-        else ANSITerminal.red
-      | "Green" -> if List.mem ANSITerminal.green acc 
-        then (Display.pretty_print_string "Please input a different color.";
-              ANSITerminal.black)
-        else ANSITerminal.green
-      | "Yellow" -> if List.mem ANSITerminal.yellow acc 
-        then (Display.pretty_print_string "Please input a different color.";
-              ANSITerminal.black)
-        else ANSITerminal.yellow
-      | "Blue" -> if List.mem ANSITerminal.blue acc 
-        then (Display.pretty_print_string "Please input a different color.";
-              ANSITerminal.black)
-        else ANSITerminal.blue
-      | "Magenta" -> if List.mem ANSITerminal.magenta acc 
-        then (Display.pretty_print_string "Please input a different color.";
-              ANSITerminal.black)
-        else ANSITerminal.magenta
-      | "Cyan" -> if List.mem ANSITerminal.cyan acc 
-        then (Display.pretty_print_string "Please input a different color.";
-              ANSITerminal.black)
-        else ANSITerminal.cyan
-      | _ -> Display.pretty_print_string "Please input a valid color."; 
-        ANSITerminal.black
-    in if piece_color = ANSITerminal.black 
+    let piece_color = check_color_valid_dup color acc in 
+    if piece_color = ANSITerminal.black 
     then get_colors players count acc 
     else get_colors players (count + 1) (piece_color :: acc)
 
@@ -327,13 +333,13 @@ let rec play_game state =
   try
     match Command.parse command with 
     | Command.Help ->
-      Display.print_help (Game_mechanics.get_gamemode state);
+      Display.print_help state;
       play_game state
     | Command.Hand ->
       Display.print_hand state curr_player;
       play_game state
     | Command.Print ->
-      Display.print_board state;
+      Display.print_board state; Display.print_player state;
       play_game state
     | Command.Save object_phrase -> 
       let saved = save_handler state object_phrase in
@@ -348,7 +354,8 @@ let rec play_game state =
       Display.pretty_print_string "Ending the game and returning to the \
                                    game setup menu.";
       game_setup ()
-    | Command.ToggleAI -> begin
+    | Command.ToggleAI -> 
+      begin
         let toggle_result = Game_mechanics.toggle_ai state in 
         match toggle_result with 
         | Game_mechanics.Valid toggled_state -> play_game toggled_state
@@ -386,7 +393,8 @@ and game_setup () =
       Display.pretty_print_string "Game state started!";
       Display.print_start_turn game_state;
       play_game game_state
-    | Command.SinglePlayer -> begin 
+    | Command.SinglePlayer -> 
+      begin 
         let game_state = start_regular_game in 
         let ai_result = Game_mechanics.toggle_ai game_state in 
         Display.pretty_print_string "Singleplayer mode started!";

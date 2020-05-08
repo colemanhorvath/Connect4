@@ -45,12 +45,6 @@ docs-private: build
 		-html -stars -d doc.private \
 		-inv-merge-ml-mli -m A $(MLIS) $(MLS)
 
-# check:
-# 	bash checkenv.sh && bash checktypes.sh
-	
-# finalcheck: check
-# 	bash checkzip.sh
-# 	bash finalcheck.sh
 
 clean:
 	ocamlbuild -clean
