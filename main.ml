@@ -47,7 +47,7 @@ let parse_helper st piece_type tail player =
     and col number from string list [object_phrase] for state [st] and [player]
     Raises [Failure str] if not a valid int, object_phrase is empty, or a given
     piece type is invalid. 
-    Raises [InvalidPieceType if an invalid piece name is entered.
+    Raises [InvalidPieceType] if an invalid piece name is entered.
     Raises [InvalidForce] if a non-normal piece is played when player forced.
     Raises [NoPiecesOfType] if player has no pieces of specified piece type. *)
 let parse_object_phrase st object_phrase player = 
@@ -189,7 +189,6 @@ let rec place_bomb state =
 
 (** [get_players ()] recursively asks for player to input the number of 
     players in their game until a valid number between [2,4] is given *)
-(**update to allow for 1 player games *)
 let rec get_players () = 
   let players = 
     (read_line (print_endline "\nHow many players? \n\
@@ -197,7 +196,7 @@ let rec get_players () =
   match int_of_string_opt players with 
   | None -> Display.pretty_print_string "Please input a number."; get_players ()
   | Some p -> if p > 4 || p < 2
-    then (Display.pretty_print_string "Invalid players number."; get_players () )
+    then (Display.pretty_print_string "Invalid players number."; get_players ())
     else p
 
 (** [get_rows ()] recursively asks for player to input a the number of rows
@@ -328,7 +327,7 @@ let rec play_game state =
   try
     match Command.parse command with 
     | Command.Help ->
-      Display.print_help ();
+      Display.print_help (Game_mechanics.get_gamemode state);
       play_game state
     | Command.Hand ->
       Display.print_hand state curr_player;
@@ -353,7 +352,9 @@ let rec play_game state =
         let toggle_result = Game_mechanics.toggle_ai state in 
         match toggle_result with 
         | Game_mechanics.Valid toggled_state -> play_game toggled_state
-        | Game_mechanics.Invalid -> Display.pretty_print_string "AI can only be activated in a standard game";
+        | Game_mechanics.Invalid -> Display.pretty_print_string 
+                                      "AI can only be activated in a \
+                                       standard game";
           play_game state
       end
     | _ -> raise Command.Malformed
@@ -421,7 +422,6 @@ and game_setup () =
                                    ", please try again."]);
     game_setup ()
 
-(** [main ()] prints a welcome message and runs the game setup. *)
 let main () =
   ANSITerminal.(print_string [blue] "\nWelcome to Connect 4!\n");
   game_setup ()

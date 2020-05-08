@@ -60,7 +60,8 @@ let test_sps = [
   [1;1;1;1];
   [1;1;1;1]
 ]
-let test_game = load_game 2 7 7 test_game_board 1 4 [ANSITerminal.yellow; ANSITerminal.red] 2 test_sps false false false
+let test_game = load_game 2 7 7 test_game_board 1 4 
+    [ANSITerminal.yellow; ANSITerminal.red] 2 test_sps false false false
 let blank_game = load_game 0 0 0 [] 0 0 [] 0 [] false false false 
 let custom_game_board = [
   [Normal 1];
@@ -77,12 +78,56 @@ let custom_sps = [
   [1;1;0;0];
   [1;0;1;1]
 ]
-let customized_game = load_game 3 8 8 custom_game_board 2 5 [ANSITerminal.green; ANSITerminal.yellow; ANSITerminal.red] 2 custom_sps true false false
+let customized_game = load_game 3 8 8 custom_game_board 2 5 
+    [ANSITerminal.green; ANSITerminal.yellow; ANSITerminal.red] 2 custom_sps 
+    true false false
 
-let new_game_standard_string = "{\"num_players\":\"2\",\"rows\":\"7\",\"cols\":\"7\",\"gameboard\":[[],[],[],[],[],[],[]],\"player_turn\":\"0\",\"connect_num\":\"4\",\"colors\":[\"Yellow\",\"Red\"],\"game_mode\":\"1\",\"special_pieces\":[[\"0\",\"0\",\"0\",\"0\"],[\"0\",\"0\",\"0\",\"0\"]],\"is_player_forced\":\"false\",\"is_awaiting_bomb\":\"false\",\"ai_active\":\"false\"}"
-let new_game_9x9_string = "{\"num_players\":\"2\",\"rows\":\"9\",\"cols\":\"9\",\"gameboard\":[[],[],[],[],[],[],[],[],[]],\"player_turn\":\"0\",\"connect_num\":\"4\",\"colors\":[\"Yellow\",\"Red\"],\"game_mode\":\"1\",\"special_pieces\":[[\"0\",\"0\",\"0\",\"0\"],[\"0\",\"0\",\"0\",\"0\"]],\"is_player_forced\":\"false\",\"is_awaiting_bomb\":\"false\",\"ai_active\":\"false\"}"
-let test_game_string = "{\"num_players\":\"2\",\"rows\":\"7\",\"cols\":\"7\",\"gameboard\":[[{\"type\":\"Normal\",\"player\":\"1\"}],[{\"type\":\"Normal\",\"player\":\"1\"},{\"type\":\"Normal\",\"player\":\"2\"}],[{\"type\":\"Normal\",\"player\":\"2\"}],[{\"type\":\"Normal\",\"player\":\"1\"}],[],[],[]],\"player_turn\":\"1\",\"connect_num\":\"4\",\"colors\":[\"Yellow\",\"Red\"],\"game_mode\":\"2\",\"special_pieces\":[[\"1\",\"1\",\"1\",\"1\"],[\"1\",\"1\",\"1\",\"1\"]],\"is_player_forced\":\"false\",\"is_awaiting_bomb\":\"false\",\"ai_active\":\"false\"}"
-let customized_game_string = "{\"num_players\":\"3\",\"rows\":\"8\",\"cols\":\"8\",\"gameboard\":[[{\"type\":\"Normal\",\"player\":\"1\"}],[{\"type\":\"Anvil\",\"player\":\"1\"}],[{\"type\":\"Force\",\"player\":\"2\"},{\"type\":\"Normal\",\"player\":\"2\"}],[{\"type\":\"Normal\",\"player\":\"1\"}],[{\"type\":\"Normal\",\"player\":\"3\"},{\"type\":\"Wall\",\"player\":\"0\"}],[{\"type\":\"Normal\",\"player\":\"3\"}],[{\"type\":\"Force\",\"player\":\"1\"}],[{\"type\":\"Bomb\",\"player\":\"2\"}]],\"player_turn\":\"2\",\"connect_num\":\"5\",\"colors\":[\"Green\",\"Yellow\",\"Red\"],\"game_mode\":\"2\",\"special_pieces\":[[\"0\",\"1\",\"1\",\"0\"],[\"1\",\"1\",\"0\",\"0\"],[\"1\",\"0\",\"1\",\"1\"]],\"is_player_forced\":\"true\",\"is_awaiting_bomb\":\"false\",\"ai_active\":\"false\"}"
+let new_game_standard_string = "{\"num_players\":\"2\",\"rows\":\"7\",\"cols\":\
+                                \"7\",\"gameboard\":[[],[],[],[],[],[],[]],\
+                                \"player_turn\":\"0\",\"connect_num\":\"4\",\
+                                \"colors\":[\"Yellow\",\"Red\"],\"game_mode\":\
+                                \"1\",\"special_pieces\":[[\"0\",\"0\",\"0\",\
+                                \"0\"],[\"0\",\"0\",\"0\",\"0\"]],\"is_player_\
+                                forced\":\"false\",\"is_awaiting_bomb\":\
+                                \"false\",\"ai_active\":\"false\"}"
+let new_game_9x9_string = "{\"num_players\":\"2\",\"rows\":\"9\",\"cols\":\"9\
+                           \",\"gameboard\":[[],[],[],[],[],[],[],[],[]],\
+                           \"player_turn\":\"0\",\"connect_num\":\"4\",\
+                           \"colors\":[\"Yellow\",\"Red\"],\"game_mode\":\
+                           \"1\",\"special_pieces\":[[\"0\",\"0\",\"0\",\"0\"]\
+                           ,[\"0\",\"0\",\"0\",\"0\"]],\"is_player_forced\":\
+                           \"false\",\"is_awaiting_bomb\":\"false\",\
+                           \"ai_active\":\"false\"}"
+let test_game_string = "{\"num_players\":\"2\",\"rows\":\"7\",\"cols\":\"7\",\
+                        \"gameboard\":[[{\"type\":\"Normal\",\"player\":\"1\"}\
+                        ],[{\"type\":\"Normal\",\"player\":\"1\"},{\"type\":\
+                        \"Normal\",\"player\":\"2\"}],[{\"type\":\"Normal\",\
+                        \"player\":\"2\"}],[{\"type\":\"Normal\",\"player\":\
+                        \"1\"}],[],[],[]],\"player_turn\":\"1\",\"connect_num\
+                        \":\"4\",\"colors\":[\"Yellow\",\"Red\"],\"game_mode\
+                        \":\"2\",\"special_pieces\":[[\"1\",\"1\",\"1\",\"1\"]\
+                        ,[\"1\",\"1\",\"1\",\"1\"]],\"is_player_forced\":\
+                        \"false\",\"is_awaiting_bomb\":\"false\",\"ai_active\
+                        \":\"false\"}"
+let customized_game_string = "{\"num_players\":\"3\",\"rows\":\"8\",\"cols\":\
+                              \"8\",\"gameboard\":[[{\"type\":\"Normal\",\
+                              \"player\":\"1\"}],[{\"type\":\"Anvil\",\
+                              \"player\":\"1\"}],[{\"type\":\"Force\",\
+                              \"player\":\"2\"},{\"type\":\"Normal\",\
+                              \"player\":\"2\"}],[{\"type\":\"Normal\",\
+                              \"player\":\"1\"}],[{\"type\":\"Normal\",\
+                              \"player\":\"3\"},{\"type\":\"Wall\",\
+                              \"player\":\"0\"}],[{\"type\":\"Normal\",\
+                              \"player\":\"3\"}],[{\"type\":\"Force\",\
+                              \"player\":\"1\"}],[{\"type\":\"Bomb\",\
+                              \"player\":\"2\"}]],\"player_turn\":\"2\",\
+                              \"connect_num\":\"5\",\"colors\":[\"Green\",\
+                              \"Yellow\",\"Red\"],\"game_mode\":\"2\",\
+                              \"special_pieces\":[[\"0\",\"1\",\"1\",\"0\"],\
+                              [\"1\",\"1\",\"0\",\"0\"],[\"1\",\"0\",\"1\",\
+                              \"1\"]],\"is_player_forced\":\"true\",\
+                              \"is_awaiting_bomb\":\"false\",\"ai_active\":\
+                              \"false\"}"
 
 let load_tests = [
   make_load_test "load a new standard game" "new_game_standard.json" 

@@ -14,6 +14,9 @@ default: build
 build:
 	$(OCAMLBUILD) $(OBJECTS)
 
+test: test_mechanics test_command test_save
+
+
 test_mechanics:
 	$(OCAMLBUILD) -tag 'debug' $(TEST) && ./$(TEST)
 
@@ -29,6 +32,19 @@ play:
 zip:
 	zip connect4.zip *.ml* test*.json INSTALL.txt _tags Makefile
 
+docs: docs-public docs-private
+	
+docs-public: build
+	mkdir -p doc.public
+	ocamlfind ocamldoc -I _build -package yojson,ANSITerminal \
+		-html -stars -d doc.public $(MLIS)
+
+docs-private: build
+	mkdir -p doc.private
+	ocamlfind ocamldoc -I _build -package yojson,ANSITerminal \
+		-html -stars -d doc.private \
+		-inv-merge-ml-mli -m A $(MLIS) $(MLS)
+
 # check:
 # 	bash checkenv.sh && bash checktypes.sh
 	
@@ -36,22 +52,6 @@ zip:
 # 	bash checkzip.sh
 # 	bash finalcheck.sh
 
-# zip:
-# 	zip adventure.zip *.ml* *.json _tags Makefile
-	
-# docs: docs-public docs-private
-	
-# docs-public: build
-# 	mkdir -p doc.public
-# 	ocamlfind ocamldoc -I _build -package yojson,ANSITerminal \
-# 		-html -stars -d doc.public $(MLIS)
-
-# docs-private: build
-# 	mkdir -p doc.private
-# 	ocamlfind ocamldoc -I _build -package yojson,ANSITerminal \
-# 		-html -stars -d doc.private \
-# 		-inv-merge-ml-mli -m A $(MLIS) $(MLS)
-
-# clean:
-# 	ocamlbuild -clean
-# 	rm -rf doc.public doc.private adventure.zip
+clean:
+	ocamlbuild -clean
+	rm -rf doc.public doc.private connect4.zip

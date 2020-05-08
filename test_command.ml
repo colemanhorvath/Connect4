@@ -32,7 +32,8 @@ let parse_tests = [
   make_parse_test "parse place" "place" (Save ["mal formed"]);
   make_parse_test "parse load test.json" "load test.json" (Load ["test.json"]);
   make_parse_test "print" "print" Print;
-  make_parse_test "parse print something" "print something" (Save ["mal formed"]);
+  make_parse_test "parse print something" "print something" 
+    (Save ["mal formed"]);
   make_parse_test "parse save test dot json" "save test dot json" 
     (Save ["test"; "dot"; "json"]);
   make_parse_test "parse save" "save" (Save ["mal formed"]);

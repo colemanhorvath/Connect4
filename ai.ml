@@ -7,7 +7,8 @@ let rec winning_move st player i: int option =
   if i > snd (get_dimensions st) then None else 
     let move_state = move st i (Normal player) in 
     match move_state with
-    | Valid new_state -> (if check_win new_state player i then Some i else winning_move st player (i+1))
+    | Valid new_state -> (if check_win new_state player i then Some i 
+                          else winning_move st player (i+1))
     | Invalid -> winning_move st player (i+1)
 
 (** [find_next_valid_move st i] returns the column from [st] closest to the 

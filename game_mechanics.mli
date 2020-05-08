@@ -114,17 +114,20 @@ val check_draw : t -> bool
     has resulted in a draw, or if the game is still being played. *)
 val check_status: t -> int -> int -> status
 
-(** get_dimensions state] is the dimensions of [state] as (row, col). *)
+(** [get_dimensions state] is the dimensions of [state] as (row, col). *)
 val get_dimensions : t -> int * int
 
-(** get_colors state] is the string list of colors of [state]. *)
+(** [get_colors state] is the string list of colors of [state]. *)
 val get_colors : t -> ANSITerminal.style list
 
-(** is_forced state] is true of the current player in [state] is forced to 
+(** [get_gamemode state] is the gamemode of [state] *)
+val get_gamemode: t -> int
+
+(** [is_forced state] is true of the current player in [state] is forced to 
     play a piece of the previous player, false otherwise. *)
 val is_forced : t -> bool
 
-(** is_bombed state] is true if the current player has to play a bomb, 
+(** [is_bombed state] is true if the current player has to play a bomb, 
     false otherwise [state]. *)
 val is_bombed : t -> bool
 

@@ -77,7 +77,8 @@ let special_piece_maker mode =
     special piece for each player based on the game [mode]  *)
 let rec special_piece_list_maker mode count acc = 
   if count = 0 then acc 
-  else special_piece_list_maker mode (count - 1) (special_piece_maker mode :: acc)
+  else special_piece_list_maker mode (count - 1) 
+      (special_piece_maker mode :: acc)
 
 let load_game players rows cols board turn connect colors mode sps force 
     bomb ai = {
@@ -173,7 +174,8 @@ let rec player_piece_decrementer piece_loc pieces_list count acc =
 (** [special_piece_decrementer player piece_loc special_pieces_list count acc] 
     gets the special piece list for [player] in special_pieces_list so it can 
     be decremented with [player_piece_decrementer] *)
-let rec special_piece_decrementer player piece_loc special_pieces_list count acc = 
+let rec special_piece_decrementer player piece_loc special_pieces_list 
+    count acc = 
   match special_pieces_list with 
   | [] -> List.rev acc 
   | x :: xs -> if count = player then special_piece_decrementer player piece_loc
@@ -235,7 +237,8 @@ let rec bomb_board board row_i col_i iterator =
 
 let bomb state row col =
   try
-    if col > state.cols || col <= 0 || row > state.rows || row <= 0 then Invalid
+    if col > state.cols || col <= 0 || row > state.rows || row <= 0 
+    then Invalid
     else 
       let new_board = bomb_board state.gameboard row col 1 in
       Valid {state with gameboard = new_board; 
@@ -405,7 +408,7 @@ let check_col_win board player col connect max_cols =
     then false else check_col_match column player 0 connect
 
 (** [check_row_match board row player col count last max_cols connect] checks 
-    if there is a match of [connect] pieces for [player] in [row]] *)
+    if there is a match of [connect] pieces for [player] in [row] *)
 let rec check_row_match board row player col count last max_cols connect = 
   if count = connect then true
   else if col >= max_cols then false
@@ -417,14 +420,16 @@ let rec check_row_match board row player col count last max_cols connect =
     else let piece = List.nth (List.nth board col) (col_len - row - 1) in
       let piece_num = get_piece_player piece in
       if piece_num = player 
-      then check_row_match board row player (col + 1) (count + 1) last max_cols connect
+      then check_row_match board row player (col + 1) (count + 1) last 
+          max_cols connect
       else check_row_match board row player (col + 1) 0 last max_cols connect
 
 (** [check_diagonal_lr_match board row player col count inc last max_cols 
     max_rows connect] checks if there is a diagonal left right match
     of [connect] pieces for [player] by starting in the leftmost bottom
     piece in the diagonal and making its way up the diagonal *)
-let rec check_diagonal_lr_match board row player col count inc last max_cols max_rows connect = 
+let rec check_diagonal_lr_match board row player col count inc last max_cols 
+    max_rows connect = 
   if count = connect then true
   else if row < 0 || row >= max_rows then false
   else if col < 0 || col >= max_cols then false
@@ -432,18 +437,22 @@ let rec check_diagonal_lr_match board row player col count inc last max_cols max
   else
     let col_len = (List.nth board col |> List.length) in 
     if col_len <= row 
-    then check_diagonal_lr_match board (row + 1) player (col + 1) 0 (inc + 1) last max_cols max_rows connect
+    then check_diagonal_lr_match board (row + 1) player (col + 1) 0 (inc + 1) 
+        last max_cols max_rows connect
     else let piece = List.nth (List.nth board col) (col_len - row - 1) in
       let piece_num = get_piece_player piece in
       if piece_num = player 
-      then check_diagonal_lr_match board (row + 1) player (col + 1) (count + 1) (inc + 1) last max_cols max_rows connect
-      else check_diagonal_lr_match board (row + 1) player (col + 1) 0 (inc + 1) last max_cols max_rows connect
+      then check_diagonal_lr_match board (row + 1) player (col + 1) (count + 1) 
+          (inc + 1) last max_cols max_rows connect
+      else check_diagonal_lr_match board (row + 1) player (col + 1) 0 (inc + 1) 
+          last max_cols max_rows connect
 
 (** [check_diagonal_rl_match board row player col count inc last max_cols 
     max_rows connect] checks if there is a diagonal right left match
     of [connect] pieces for [player] by starting in the leftmost top
     piece in the diagonal and making its way down the diagonal *)
-let rec check_diagonal_rl_match board row player col count inc last max_cols max_rows connect = 
+let rec check_diagonal_rl_match board row player col count inc last max_cols 
+    max_rows connect = 
   if count = connect then true
   else if row < 0 || row >= max_rows then false
   else if col < 0 || col >= max_cols then false
@@ -451,12 +460,15 @@ let rec check_diagonal_rl_match board row player col count inc last max_cols max
   else
     let col_len = (List.nth board col |> List.length) in 
     if col_len <= row 
-    then check_diagonal_rl_match board (row - 1) player (col + 1) 0 (inc + 1) last max_cols max_rows connect
+    then check_diagonal_rl_match board (row - 1) player (col + 1) 0 (inc + 1) 
+        last max_cols max_rows connect
     else let piece = List.nth (List.nth board col) (col_len - row - 1) in
       let piece_num = get_piece_player piece in
       if piece_num = player 
-      then check_diagonal_rl_match board (row - 1) player (col + 1) (count + 1) (inc + 1) last max_cols max_rows connect
-      else check_diagonal_rl_match board (row - 1) player (col + 1) 0 (inc + 1) last max_cols max_rows connect
+      then check_diagonal_rl_match board (row - 1) player (col + 1) (count + 1) 
+          (inc + 1) last max_cols max_rows connect
+      else check_diagonal_rl_match board (row - 1) player (col + 1) 0 (inc + 1) 
+          last max_cols max_rows connect
 
 let check_win state player col =
   let col = col - 1 in
@@ -466,7 +478,8 @@ let check_win state player col =
     let row = (List.nth board col |> List.length) - 1 in 
     let first = (max (col - 3) 0)in 
     let last = (min (col + 4) state.cols) in 
-    if check_row_match board row player first 0 last state.cols state.connect_num then true 
+    if check_row_match board row player first 0 last state.cols 
+        state.connect_num then true 
     else 
       let rowbegin = (max (row - 3) 0) in
       let rowend = (min (row + 3) (state.rows - 1)) in 
@@ -509,21 +522,11 @@ let get_dimensions state =
 let get_colors state =
   state.colors
 
+let get_gamemode state =
+  state.game_mode
+
 let is_forced state =
   state.is_player_forced
 
 let is_bombed state =
   state.is_awaiting_bomb
-
-(*
-          Format.fprintf Format.std_formatter "c:%d \n" col;
-        Format.fprintf Format.std_formatter "r:%d \n" row;
-        Format.fprintf Format.std_formatter "rb:%d \n" rowbegin;
-        Format.fprintf Format.std_formatter "re:%d \n" rowend;
-        Format.fprintf Format.std_formatter "cb:%d \n" colbegin;
-        Format.fprintf Format.std_formatter "ce:%d \n" colend;
-        Format.fprintf Format.std_formatter "start:%d \n" start;
-        Format.fprintf Format.std_formatter "range:%d \n" range;
-        Format.fprintf Format.std_formatter "rs:%d \n" (row + start);
-        Format.fprintf Format.std_formatter "cs:%d \n\n" (col - start);
-        *)

@@ -31,7 +31,7 @@ let to_piece json =
   | _ -> Game_mechanics.None
 
 (** [map_cols json] is the list of pieces in [json] which encodes one column
-    of a gameboard]*)
+    of a gameboard *)
 let map_cols json = 
   json |> to_list |> List.map to_piece 
 
