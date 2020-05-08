@@ -89,5 +89,6 @@
     ]
   ],
   "is_player_forced": "true",
-  "is_awaiting_bomb": "false"
+  "is_awaiting_bomb": "false",
+  "ai_active": "false"
 }

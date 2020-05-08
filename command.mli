@@ -6,6 +6,8 @@ type object_phrase = string list
 type command = 
   | Print
   | Start
+  | SinglePlayer
+  | ToggleAI
   | Settings
   | Help
   | Hand

@@ -3,6 +3,8 @@ type object_phrase = string list
 type command = 
   | Print
   | Start
+  | SinglePlayer
+  | ToggleAI
   | Settings
   | Help
   | Hand
@@ -33,6 +35,8 @@ let parse input =
     | "", _ -> raise Empty 
     | "print", [] -> Print
     | "start", [] -> Start
+    | "singleplayer", [] -> SinglePlayer
+    | "toggle", [] -> ToggleAI
     | "settings", [] -> Settings
     | "help", [] -> Help
     | "hand", [] -> Hand

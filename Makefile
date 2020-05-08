@@ -1,4 +1,4 @@
-MODULES=game_mechanics command save authors main display
+MODULES=game_mechanics command save authors main display ai
 OBJECTS=$(MODULES:=.cmo)
 MLS=$(MODULES:=.ml)
 MLIS=$(MODULES:=.mli)

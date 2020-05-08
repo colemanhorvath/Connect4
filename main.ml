@@ -154,11 +154,11 @@ let place_piece state object_phrase player =
     state
   | InvalidForce ->
     Display.pretty_print_string("Only a normal piece can be played when \
-    forced. Please try again.");
+                                 forced. Please try again.");
     state
   | NoPiecesOfType ->
     Display.pretty_print_string("Player has no pieces of specified type. \
-    Please try again.");
+                                 Please try again.");
     state
 
 (** [place_bomb state] is the new state from the user placing a bomb in a 
@@ -320,9 +320,11 @@ let special_game_setup () =
     is prompted for. *)
 let rec play_game state = 
   let curr_player = Game_mechanics.get_player_turn state in
-  let command = 
-    (read_line (print_endline "Enter a command (type \"help\" if you need \
-                               it)")) in
+  let command =
+    if Game_mechanics.is_ai_active state && curr_player = 2 
+    then "place " ^ (string_of_int (Ai.next_move state)) else
+      (read_line (print_endline "Enter a command (type \"help\" if you need \
+                                 it)")) in
   try
     match Command.parse command with 
     | Command.Help ->
@@ -347,6 +349,13 @@ let rec play_game state =
       Display.pretty_print_string "Ending the game and returning to the \
                                    game setup menu.";
       game_setup ()
+    | Command.ToggleAI -> begin
+        let toggle_result = Game_mechanics.toggle_ai state in 
+        match toggle_result with 
+        | Game_mechanics.Valid toggled_state -> play_game toggled_state
+        | Game_mechanics.Invalid -> Display.pretty_print_string "AI can only be activated in a standard game";
+          play_game state
+      end
     | _ -> raise Command.Malformed
   with
   | Command.Empty -> 
@@ -364,9 +373,11 @@ and game_setup () =
   let command = 
     (read_line (print_endline "Please type \"start\" to start a regular 2 \
                                player Connect 4 game, \"settings\" to create \
-                               a custom Connect 4 game, \"load [filename]\" to \
-                               load a previously saved game, or \"exit\" \
-                               to exit the game console.")) in
+                               a custom Connect 4 game, \"singleplayer\" to \
+                               start a new regular game against the \
+                               computer, \"load [filename]\" to load a \
+                               previously saved game, or \"exit\" to exit the \
+                               game console.")) in
   try
     match Command.parse command with 
     | Command.Start -> 
@@ -374,6 +385,15 @@ and game_setup () =
       Display.pretty_print_string "Game state started!";
       Display.print_start_turn game_state;
       play_game game_state
+    | Command.SinglePlayer -> begin 
+        let game_state = start_regular_game in 
+        let ai_result = Game_mechanics.toggle_ai game_state in 
+        Display.pretty_print_string "Singleplayer mode started!";
+        Display.print_start_turn game_state;
+        match ai_result with 
+        | Game_mechanics.Valid ai_state -> play_game ai_state
+        | Game_mechanics.Invalid -> raise Command.Malformed
+      end
     | Command.Settings -> 
       let game_state = special_game_setup () in
       Display.pretty_print_string "Game state started!";

@@ -104,6 +104,7 @@ let print_help () =
   print_endline("[help] - displays list of possible commands");
   print_endline("[print] - pretty prints the current board");
   print_endline("[hand] - displays list of special pieces in your hand");
+  print_endline("[toggle] - toggles AI Player 2. Only usable in a regular game");
   print_endline("[place column] - places a normal piece on the board at \
                  [column], starting at column 1");
   print_endline("[place bomb column] - places a bomb on the board at \

@@ -48,7 +48,7 @@ type t
 (** The type representing the result of an attempted move. *)
 type move_result =  Valid of t | Invalid
 
-(** [load_game players rows cols board turn connect colors mode bomb force] is 
+(** [load_game players rows cols board turn connect colors mode force bomb] is 
     the state of a game with a [rows] x [cols] board currently on the players 
     turn, indicated by [turn], with the pieces in [board], with a win condition 
     of connecting [connect] pieces, where players are represented by [colors], 
@@ -56,7 +56,7 @@ type move_result =  Valid of t | Invalid
     depending on if the current player must bomb or place an opponent's piece 
     on their turn. *)
 val load_game: int -> int -> int -> board -> int -> int -> 
-  ANSITerminal.style list -> int -> int list list-> bool -> bool -> t
+  ANSITerminal.style list -> int -> int list list-> bool -> bool -> bool -> t
 
 (** [start_game rows cols players connect colors mode] is the initial state of 
     the game with a [rows] x [cols] board, [players] number of players, victory
@@ -127,3 +127,14 @@ val is_forced : t -> bool
 (** is_bombed state] is true if the current player has to play a bomb, 
     false otherwise [state]. *)
 val is_bombed : t -> bool
+
+(** [change_connect_num state n] is [state] but with the number of consecutive 
+    pieces needed to win is now [n]*)
+val change_connect_num : t -> int -> t
+
+(** [is_ai_active state] is true if the ai is playing in [state]*)
+val is_ai_active : t -> bool
+
+(** [toggle_ai state] is [state] with the opposite value for whether AI is
+    active.*)
+val toggle_ai : t -> move_result

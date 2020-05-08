@@ -50,6 +50,7 @@ type t = {
   special_pieces : int list list;
   is_player_forced: bool;
   is_awaiting_bomb: bool;
+  ai_active: bool
 }
 
 type move_result =  Valid of t | Invalid
@@ -79,7 +80,7 @@ let rec special_piece_list_maker mode count acc =
   else special_piece_list_maker mode (count - 1) (special_piece_maker mode :: acc)
 
 let load_game players rows cols board turn connect colors mode sps force 
-    bomb = {
+    bomb ai = {
   num_players = players;
   rows = rows;
   cols = cols; 
@@ -91,11 +92,12 @@ let load_game players rows cols board turn connect colors mode sps force
   special_pieces = sps;
   is_player_forced = force;
   is_awaiting_bomb = bomb;
+  ai_active = ai
 }
 
 let start_game rows cols players connect colors mode = 
   load_game players rows cols (create_board cols) 0 connect colors mode 
-    (special_piece_list_maker mode players []) false false
+    (special_piece_list_maker mode players []) false false false
 
 let create_piece piece_type player = 
   match piece_type with 
@@ -244,6 +246,17 @@ let bomb state row col =
   with
   | InvalidRow r -> Invalid
 
+let change_connect_num state n = 
+  {state with connect_num = n}
+
+let is_ai_active state = state.ai_active
+
+let is_standard st = 
+  (st.num_players = 2 && st.rows = 7 && st.cols = 7 && st.connect_num = 4 
+   && st.colors = [ANSITerminal.yellow; ANSITerminal.red] && st.game_mode = 1)
+
+let toggle_ai state = if is_standard state then 
+    Valid {state with ai_active = not (is_ai_active state)} else Invalid
 
 let get_gameboard state = 
   state.gameboard
@@ -343,7 +356,8 @@ let to_json_string st =
   let mode_str = string_of_int st.game_mode in 
   let special_str = string_of_special_pieces st.special_pieces in 
   let forced_str = string_of_bool st.is_player_forced in 
-  let bomb_str = string_of_bool st.is_awaiting_bomb in 
+  let bomb_str = string_of_bool st.is_awaiting_bomb in
+  let ai_str = string_of_bool st.ai_active in
   String.concat "," [
     String.concat "" ["{\"num_players\":\""; np_str; "\""];
     String.concat "" ["\"rows\":\""; row_str; "\""];
@@ -355,7 +369,8 @@ let to_json_string st =
     String.concat "" ["\"game_mode\":\""; mode_str; "\""];
     String.concat "" ["\"special_pieces\":"; special_str];
     String.concat "" ["\"is_player_forced\":\""; forced_str; "\""];
-    String.concat "" ["\"is_awaiting_bomb\":\""; bomb_str; "\"}"];
+    String.concat "" ["\"is_awaiting_bomb\":\""; bomb_str; "\""];
+    String.concat "" ["\"ai_active\":\""; ai_str; "\"}"]
   ]
 
 (** [get_piece_player p] is the player whose piece is p, the Wall has no 
@@ -395,7 +410,7 @@ let rec check_row_match board row player col count last max_cols connect =
   if count = connect then true
   else if col >= max_cols then false
   else if col = last then false
-  else 
+  else
     let col_len = (List.nth board col |> List.length) in 
     if col_len <= row 
     then check_row_match board row player (col + 1) 0 last max_cols connect
@@ -414,7 +429,7 @@ let rec check_diagonal_lr_match board row player col count inc last max_cols max
   else if row < 0 || row >= max_rows then false
   else if col < 0 || col >= max_cols then false
   else if inc = last then false
-  else 
+  else
     let col_len = (List.nth board col |> List.length) in 
     if col_len <= row 
     then check_diagonal_lr_match board (row + 1) player (col + 1) 0 (inc + 1) last max_cols max_rows connect
@@ -433,7 +448,7 @@ let rec check_diagonal_rl_match board row player col count inc last max_cols max
   else if row < 0 || row >= max_rows then false
   else if col < 0 || col >= max_cols then false
   else if inc = last then false
-  else 
+  else
     let col_len = (List.nth board col |> List.length) in 
     if col_len <= row 
     then check_diagonal_rl_match board (row - 1) player (col + 1) 0 (inc + 1) last max_cols max_rows connect
@@ -447,7 +462,7 @@ let check_win state player col =
   let col = col - 1 in
   let board = state.gameboard in
   if check_col_win board player col state.connect_num state.cols then true 
-  else 
+  else
     let row = (List.nth board col |> List.length) - 1 in 
     let first = (max (col - 3) 0)in 
     let last = (min (col + 4) state.cols) in 

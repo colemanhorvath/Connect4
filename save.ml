@@ -79,9 +79,11 @@ let from_json json =
   let force = json |> member "is_player_forced"
               |> to_string |> bool_of_string in 
   let bomb = json |>member "is_awaiting_bomb"
-             |> to_string |> bool_of_string in 
+             |> to_string |> bool_of_string in
+  let ai = json |> member "ai_active"
+           |> to_string |> bool_of_string in  
   Game_mechanics.load_game num_players rows cols board turn connect_num colors
-    mode sps force bomb
+    mode sps force bomb ai
 
 let load filename = 
   let json = try Yojson.Basic.from_file filename with

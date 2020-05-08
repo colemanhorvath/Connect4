@@ -57,5 +57,6 @@
     ]
   ],
   "is_player_forced": "false",
-  "is_awaiting_bomb": "false"
+  "is_awaiting_bomb": "false",
+  "ai_active": "false"
 }
