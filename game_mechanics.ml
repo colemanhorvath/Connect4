@@ -228,12 +228,11 @@ let rec bomb_board board row_i col_i iterator =
   match board with 
   | [] -> []
   | column::t -> 
+    let num_rows = List.length column in
     if iterator <> col_i then column::(bomb_board t row_i col_i (iterator + 1))
-    else 
-      let num_rows = List.length column in
-      if row_i > num_rows then raise (InvalidRow row_i)
-      else (bomb_board_helper column row_i num_rows)
-           ::(bomb_board t row_i col_i (iterator + 1))
+    else if row_i > num_rows then raise (InvalidRow row_i)
+    else (bomb_board_helper column row_i num_rows)
+      ::(bomb_board t row_i col_i (iterator + 1))
 
 let bomb state row col =
   try
