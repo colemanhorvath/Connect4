@@ -22,6 +22,15 @@ let rec find_next_valid_move st i =
     let new_col = if i >= 4 then i-(1 + offset) else i+offset in 
     find_next_valid_move st new_col
 
+(** [check_3s st] is the next column in which the AI will place their piece
+    given that neither the AI nor player can win next turn. *)
+let check_3s st = 
+  let connect_3_st = change_connect_num st 3 in 
+  let player_3_in_a_row = winning_move connect_3_st 1 1 in 
+  match player_3_in_a_row with 
+  | Some col -> col
+  | None -> find_next_valid_move st 4
+
 let next_move st =
   let ai_win = winning_move st 2 1 in 
   match ai_win with
@@ -30,10 +39,5 @@ let next_move st =
       let player_win = winning_move st 1 1 in 
       match player_win with 
       | Some col -> col
-      | None -> 
-        let connect_3_st = change_connect_num st 3 in 
-        let player_3_in_a_row = winning_move connect_3_st 1 1 in 
-        match player_3_in_a_row with 
-        | Some col -> col
-        | None -> find_next_valid_move st 4
+      | None -> check_3s st
     end

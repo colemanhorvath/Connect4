@@ -254,6 +254,8 @@ let change_connect_num state n =
 
 let is_ai_active state = state.ai_active
 
+(** [is_standard st] is true if [st] represents a standard connect 4 game with
+    2 players in a 7x7 board with no special pieces and normal colors*)
 let is_standard st = 
   (st.num_players = 2 && st.rows = 7 && st.cols = 7 && st.connect_num = 4 
    && st.colors = [ANSITerminal.yellow; ANSITerminal.red] && st.game_mode = 1)

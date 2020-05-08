@@ -73,7 +73,6 @@ let rec board_string st board row_index =
 let print_board state = 
   let board = Game_mechanics.get_gameboard state in
   let num_rows = fst (Game_mechanics.get_dimensions state) in
-
   board_string state board num_rows;
   print_newline ();
   print_newline ()
