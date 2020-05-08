@@ -511,7 +511,6 @@ let rec check_draw_helper state board =
 let check_draw state =
   check_draw_helper state state.gameboard
 
-(* TODO: add tests, maybe take draw/win out of mli *)
 let check_status state player col =
   if check_win state player col then Win player else
   if check_draw state then Draw else Play
