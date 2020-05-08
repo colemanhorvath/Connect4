@@ -270,7 +270,8 @@ let get_player_turn state =
   state.player_turn + 1
 
 let get_prev_player_turn state = 
-  if state.player_turn = 0 then state.num_players else state.player_turn
+  if state.player_turn = 0 then state.num_players 
+  else state.player_turn
 
 let get_player_hand state player =
   List.nth state.special_pieces (player - 1)
@@ -389,6 +390,13 @@ let get_piece_player p =
   | Force x -> x
   | None -> 10
 
+
+let check_bounds row col max_rows max_cols = 
+  if row < 0 || row >= max_rows then true
+  else if col < 0 || col >= max_cols then true
+  else false
+
+
 (** [check_col_match column player count connect] checks if there is a match
     of [connect] pieces for [player] in [column] *)
 let rec check_col_match column player count connect =
@@ -413,8 +421,7 @@ let check_col_win board player col connect max_cols =
     if there is a match of [connect] pieces for [player] in [row] *)
 let rec check_row_match board row player col count last max_cols connect = 
   if count = connect then true
-  else if col >= max_cols then false
-  else if col = last then false
+  else if (check_bounds 0 col 1 max_cols) || col = last then false
   else
     let col_len = (List.nth board col |> List.length) in 
     if col_len <= row 
@@ -433,9 +440,7 @@ let rec check_row_match board row player col count last max_cols connect =
 let rec check_diagonal_lr_match board row player col count inc last max_cols 
     max_rows connect = 
   if count = connect then true
-  else if row < 0 || row >= max_rows then false
-  else if col < 0 || col >= max_cols then false
-  else if inc = last then false
+  else if (check_bounds row col max_rows max_cols) || inc = last then false
   else
     let col_len = (List.nth board col |> List.length) in 
     if col_len <= row 
@@ -456,9 +461,7 @@ let rec check_diagonal_lr_match board row player col count inc last max_cols
 let rec check_diagonal_rl_match board row player col count inc last max_cols 
     max_rows connect = 
   if count = connect then true
-  else if row < 0 || row >= max_rows then false
-  else if col < 0 || col >= max_cols then false
-  else if inc = last then false
+  else if (check_bounds row col max_rows max_cols) || inc = last then false
   else
     let col_len = (List.nth board col |> List.length) in 
     if col_len <= row 
@@ -484,23 +487,15 @@ let check_win state player col =
         state.connect_num then true 
     else 
       let rowbegin = (max (row - 3) 0) in
-      let rowend = (min (row + 3) (state.rows - 1)) in 
       let colbegin = (max (col - 3) 0) in
-      let colend = (min (col + 3) (state.cols - 1)) in 
       let start = (min (row - rowbegin) (col - colbegin)) in 
-      let range = (min (rowend - rowbegin) (colend - colbegin)) + 1 in 
-      if range < 4 then false else
       if check_diagonal_lr_match board (row - start) player 
           (col - start) 0 0 7 state.cols state.rows state.connect_num then true 
       else  
         let rowbegin = (min (row + 3) (state.rows - 1)) in
-        let rowend = (max (row - 3) 0) in 
         let start = (min (rowbegin - row) (col - colbegin)) in 
-        let range = (min (rowbegin - rowend) (colend - colbegin)) + 1 in 
-        if range < 4 then false 
-        else 
-          check_diagonal_rl_match board (row + start) player 
-            (col - start) 0 0 7 state.cols state.rows state.connect_num
+        check_diagonal_rl_match board (row + start) player 
+          (col - start) 0 0 7 state.cols state.rows state.connect_num
 
 (** [rec check_draw_helper state board] is recursively true if the board is
     completely full of pieces, false otherwise. *)
