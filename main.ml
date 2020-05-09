@@ -105,11 +105,14 @@ let save_handler state object_phrase =
     quits the game on a win or draw, and continues if the game is not over. *)
 let check_win_condition state player col = 
   match (Game_mechanics.check_status state player col) with
-  | Game_mechanics.Win win_player -> 
+  | Game_mechanics.Win win_player ->
     Display.print_board state;
-    Display.pretty_print_string(String.concat "" ["Congrats Player "; 
-                                                  string_of_int win_player;
-                                                  ", you won!"]);
+    if Game_mechanics.is_ai_active state && player = 2 
+    then (Display.pretty_print_string("Sorry, the Computer wins this round! \
+                                       Better luck next time!");)
+    else (Display.pretty_print_string(String.concat "" ["Congrats Player "; 
+                                                        string_of_int win_player;
+                                                        ", you won!"]););
     exit_game ()
   | Game_mechanics.Draw ->
     Display.print_board state;
