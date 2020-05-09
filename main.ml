@@ -168,7 +168,7 @@ let place_piece state object_phrase player =
     prompted for row and column. Recursively continues until a valid row/column 
     of a piece is given.*)
 let rec place_bomb state = 
-  try 
+  try begin
     let row = 
       (read_line (print_endline 
                     "What row would you like to place the bomb in?")) in
@@ -180,8 +180,10 @@ let rec place_bomb state =
     match result with
     | Invalid -> raise InvalidPlacement
     | Valid new_state ->
-      Display.print_start_turn new_state; 
-      new_state
+      Display.print_start_turn new_state;
+      (check_win_condition new_state (Game_mechanics.get_player_turn state) (int_of_string col)); 
+      new_state 
+  end
   with
   | Failure _ -> 
     print_endline "Non integer row and/or column provided. Please try again.";
