@@ -166,6 +166,7 @@ let rec check_win_of_each_player_helper state player col =
   if player <= 0 then ()
   else ( 
     check_win_condition state player col; 
+    check_win_of_each_player_helper state (player - 1) col)
 
 (** [check_win_of_each_player state col] checks if any players have won the 
     game in [col] of [state]. *)
