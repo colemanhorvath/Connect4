@@ -108,13 +108,9 @@ val format: piece -> string
 (** [to_json_string st] is the json string representation of [st]. *)
 val to_json_string: t -> string 
 
-(** [check_win state player col] is true if [state] has a win from player 
-    [player] from playing in column [col] and false otherwise *)
-val check_win : t -> int -> int -> bool
-
-(** [check_win_bomb state player col] is true if [state] has a win from player 
-    [player] from the piece in column [col] and row [row] false otherwise *)
-val check_win_bomb : t -> int -> int -> int -> bool
+(** [check_win state player col row] is true if [state] has a win from player 
+    [player] from playing in column [col], row [row] and false otherwise *)
+val check_win : t -> int -> int -> int -> bool
 
 (** [check_draw state] is true if the game board is full and nobody has won and 
     false otherwise *)

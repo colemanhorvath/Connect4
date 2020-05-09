@@ -488,32 +488,11 @@ and check_diagonal_rl_bounds board row player col count inc last max_cols
     check_diagonal_rl_match board row player col count inc last max_cols 
       max_rows connect
 
-let check_win state player col =
+let check_win state player col row =
   let col = col - 1 in
   let board = state.gameboard in
-  let row = (List.nth board col |> List.length) - 1 in 
-  let connect_num = state.connect_num in
-  let first = (max (col - connect_num - 1) 0)in 
-  let last = (min (col + connect_num) state.cols) in 
-  let rowbeginlr = (max (row - connect_num - 1) 0) in
-  let colbegin = (max (col - connect_num - 1) 0) in
-  let startlr = (min (row - rowbeginlr) (col - colbegin)) in 
-  let rowbeginrl = (min (row + connect_num - 1) (state.rows - 1)) in
-  let startrl = (min (rowbeginrl - row) (col - colbegin)) in 
-  check_col_bounds board player col state.cols connect_num ||
-  check_row_bounds board row player first 0 last state.cols 
-    connect_num ||
-  check_diagonal_lr_bounds board (row - startlr) player 
-    (col - startlr) 0 0 ((connect_num * 2) - 1) state.cols state.rows 
-    connect_num ||
-  check_diagonal_rl_bounds board (row + startrl) player 
-    (col - startrl) 0 0 ((connect_num * 2) - 1) state.cols state.rows 
-    connect_num
-
-let check_win_bomb state player col row =
-  let col = col - 1 in
-  let row = row - 1 in
-  let board = state.gameboard in
+  let row = if row = -1 then (List.nth board col |> List.length) - 1 
+    else row - 1 in 
   let connect_num = state.connect_num in
   let first = (max (col - connect_num - 1) 0)in 
   let last = (min (col + connect_num) state.cols) in 
@@ -548,14 +527,14 @@ let num_pieces_in_col state col =
   else List.length (List.nth state.gameboard (col-1))
 
 let check_status state player col =
-  if check_win state player col then Win player else
+  if check_win state player col (-1) then Win player else
   if check_draw state then Draw else Play
 
 (** [check_status_bomb_helper state player col row] recursively checks each 
     [row] in [col] to see if [player] has won in [state]. *)
 let rec check_status_bomb_helper state player col row = 
   if row = 0 then Play
-  else if check_win_bomb state player col row then Win player
+  else if check_win state player col row then Win player
   else check_status_bomb_helper state player col (row - 1)
 
 let check_status_bomb state player col = 
