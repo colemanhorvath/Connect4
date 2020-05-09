@@ -137,7 +137,6 @@ let place_piece state object_phrase player =
     let piece_type = fst piece_and_col in
     let col = snd piece_and_col in
     let piece_player = get_piece_player state player in
-
     let piece = Game_mechanics.create_piece piece_type piece_player in
     let move_result = Game_mechanics.move state col piece in
     match move_result with
@@ -147,22 +146,18 @@ let place_piece state object_phrase player =
     | Game_mechanics.Invalid -> raise InvalidPlacement
   with
   | Failure _ -> 
-    Display.pretty_print_string("Invalid command. Please try again.");
-    state
+    Display.pretty_print_string("Invalid command. Please try again."); state
   | InvalidPieceType ->
-    Display.pretty_print_string("Invalid piece type. Please try again.");
-    state
+    Display.pretty_print_string("Invalid piece type. Please try again."); state
   | InvalidPlacement ->
     Display.pretty_print_string("Invalid column number. Please try again.");
     state
   | InvalidForce ->
     Display.pretty_print_string("Only a normal piece can be played when \
-                                 forced. Please try again.");
-    state
+                                 forced. Please try again."); state
   | NoPiecesOfType ->
     Display.pretty_print_string("Player has no pieces of specified type. \
-                                 Please try again.");
-    state
+                                 Please try again."); state
 
 (** [place_bomb state] is the new state from the user placing a bomb in a 
     prompted for row and column. Recursively continues until a valid row/column 
@@ -181,8 +176,8 @@ let rec place_bomb state =
     | Invalid -> raise InvalidPlacement
     | Valid new_state ->
       Display.print_start_turn new_state;
-      (check_win_condition new_state (Game_mechanics.get_player_turn state) (int_of_string col)); 
-      new_state 
+      (check_win_condition new_state (Game_mechanics.get_player_turn state) 
+         (int_of_string col)); new_state 
   end
   with
   | Failure _ -> 
@@ -323,7 +318,7 @@ let special_game_setup () =
   start_custom_game rows cols players connect_num colors mode
 
 
-(** [rec play_game state] recursively asks for player input one step at a time 
+(** [play_game state] recursively asks for player input one step at a time 
     and handles all possible commands after a game has been started. This 
     includes [help], [hand], [print], [save], [place] and [quit]. If a command 
     is empty or malformed, an explanation is printed and another command 
@@ -337,38 +332,22 @@ let rec play_game state =
                                  it)")) in
   try
     match Command.parse command with 
-    | Command.Help ->
-      Display.print_help state;
+    | Command.Help -> Display.print_help state; 
       play_game state
-    | Command.Hand ->
-      Display.print_hand state curr_player;
+    | Command.Hand -> Display.print_hand state curr_player; 
       play_game state
-    | Command.Print ->
-      Display.print_board state; Display.print_player state;
+    | Command.Print -> Display.print_board state; Display.print_player state;
       play_game state
     | Command.Save object_phrase -> 
       let saved = save_handler state object_phrase in
       if not saved then play_game state else exit_game ()
-    | Command.Place object_phrase ->
-      let new_state = place_piece state object_phrase curr_player in
-      Display.print_start_turn new_state;
-      if Game_mechanics.is_bombed new_state then 
-        play_game (place_bomb new_state) 
-      else play_game new_state
+    | Command.Place object_phrase -> 
+      place_command object_phrase state curr_player
     | Command.Quit ->
       Display.pretty_print_string "Ending the game and returning to the \
                                    game setup menu.";
       game_setup ()
-    | Command.ToggleAI -> 
-      begin
-        let toggle_result = Game_mechanics.toggle_ai state in 
-        match toggle_result with 
-        | Game_mechanics.Valid toggled_state -> play_game toggled_state
-        | Game_mechanics.Invalid -> Display.pretty_print_string 
-                                      "AI can only be activated in a \
-                                       standard game";
-          play_game state
-      end
+    | Command.ToggleAI -> toggle_AI state;
     | _ -> raise Command.Malformed
   with
   | Command.Empty -> 
@@ -376,6 +355,26 @@ let rec play_game state =
     play_game state
   | Command.Malformed ->
     Display.pretty_print_string "Invalid command provided. Please try again.";
+    play_game state
+
+(** [place_command object_phrase state curr_player] makes the appropriate 
+    function calls to place the piece.*)
+and place_command object_phrase state curr_player = 
+  let new_state = place_piece state object_phrase curr_player in
+  Display.print_start_turn new_state;
+  if Game_mechanics.is_bombed new_state then play_game (place_bomb new_state) 
+  else play_game new_state
+
+(** [toggle_AT state] attempts to toggle the AI and then returns to play_game
+    with the updated state. The updated state is the same as the input state 
+    if the AI can't be toggled .*)
+and toggle_AI state = 
+  let toggle_result = Game_mechanics.toggle_ai state in 
+  match toggle_result with 
+  | Game_mechanics.Valid toggled_state -> play_game toggled_state
+  | Game_mechanics.Invalid -> Display.pretty_print_string 
+                                "AI can only be activated in a \
+                                 standard game";
     play_game state
 
 (** [game_setup ()] recursively asks for player input to either [start] the
@@ -393,34 +392,11 @@ and game_setup () =
                                game console.")) in
   try
     match Command.parse command with 
-    | Command.Start -> 
-      let game_state = start_regular_game in
-      Display.pretty_print_string "Game state started!";
-      Display.print_start_turn game_state;
-      play_game game_state
-    | Command.SinglePlayer -> 
-      begin 
-        let game_state = start_regular_game in 
-        let ai_result = Game_mechanics.toggle_ai game_state in 
-        Display.pretty_print_string "Singleplayer mode started!";
-        Display.print_start_turn game_state;
-        match ai_result with 
-        | Game_mechanics.Valid ai_state -> play_game ai_state
-        | Game_mechanics.Invalid -> raise Command.Malformed
-      end
-    | Command.Settings -> 
-      let game_state = special_game_setup () in
-      Display.pretty_print_string "Game state started!";
-      Display.print_start_turn game_state;
-      play_game game_state
-    | Command.Load object_phrase -> 
-      let game_state = load_handler object_phrase in
-      Display.pretty_print_string "Game state loaded!";
-      Display.print_start_turn game_state;
-      play_game game_state
-    | Command.Exit ->
-      Display.pretty_print_string "Ok bye!";
-      exit_game();
+    | Command.Start -> regular_start ()
+    | Command.SinglePlayer -> single_player_start ()
+    | Command.Settings -> settings_start ()
+    | Command.Load object_phrase -> load_start object_phrase
+    | Command.Exit -> Display.pretty_print_string "Ok bye!"; exit_game();
     | _ -> raise Command.Malformed
   with
   | Command.Empty -> 
@@ -434,6 +410,38 @@ and game_setup () =
                                   ["Game failed to load at file "; str; 
                                    ", please try again."]);
     game_setup ()
+
+(** [regular_start ()] initiates a regular 2 player Connect 4 game.*)
+and regular_start () =
+  let game_state = start_regular_game in
+  Display.pretty_print_string "Game state started!";
+  Display.print_start_turn game_state;
+  play_game game_state
+
+(** [single_player_start ()] initiates a single player game.*)
+and single_player_start () = 
+  let game_state = start_regular_game in 
+  let ai_result = Game_mechanics.toggle_ai game_state in 
+  Display.pretty_print_string "Singleplayer mode started!";
+  Display.print_start_turn game_state;
+  match ai_result with 
+  | Game_mechanics.Valid ai_state -> play_game ai_state
+  | Game_mechanics.Invalid -> raise Command.Malformed
+
+(** [settings_start ()] initiates a customizable game.*)
+and settings_start () = 
+  let game_state = special_game_setup () in
+  Display.pretty_print_string "Game state started!";
+  Display.print_start_turn game_state;
+  play_game game_state
+
+(** [load_start object_phrase] initiates a game from the loaded file 
+    [object_phrase].*)
+and load_start object_phrase =
+  let game_state = load_handler object_phrase in
+  Display.pretty_print_string "Game state loaded!";
+  Display.print_start_turn game_state;
+  play_game game_state
 
 let main () =
   ANSITerminal.(print_string [blue] "\nWelcome to Connect 4!\n");
