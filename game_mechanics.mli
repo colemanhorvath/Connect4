@@ -152,3 +152,8 @@ val is_standard : t -> bool
 (** [toggle_ai state] is Valid [state] with the opposite value for whether AI is
     active and Invalid if AI cannot be toggled.*)
 val toggle_ai : t -> move_result
+
+(** [num_pieces_in_col state col] is the number of pieces in the column of 
+    index [col] of [state]. If [col] is not a valid column number of [state], 
+    the result is -1. *)
+val num_pieces_in_col : t -> int -> int

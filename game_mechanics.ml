@@ -546,3 +546,7 @@ let is_standard st =
 
 let toggle_ai state = if is_standard state then 
     Valid {state with ai_active = not (is_ai_active state)} else Invalid
+
+let num_pieces_in_col state col = 
+  if col > state.cols || col <= 0 then -1 
+  else List.length (List.nth state.gameboard (col-1))

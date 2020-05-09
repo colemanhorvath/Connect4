@@ -159,6 +159,20 @@ let place_piece state object_phrase player =
     Display.pretty_print_string("Player has no pieces of specified type. \
                                  Please try again."); state
 
+(** [rec check_win_of_each_player_helper state player col] checks if a [player]
+    has won the game in [col] of [state], and recursively calls the method for
+    the next player. *)
+let rec check_win_of_each_player_helper state player col =
+  if player <= 0 then ()
+  else ( 
+    check_win_condition state player col; 
+
+(** [check_win_of_each_player state col] checks if any players have won the 
+    game in [col] of [state]. *)
+let check_win_of_each_player state col =
+  let num_players = List.length (Game_mechanics.get_colors state) in
+  check_win_of_each_player_helper state num_players col
+
 (** [place_bomb state] is the new state from the user placing a bomb in a 
     prompted for row and column. Recursively continues until a valid row/column 
     of a piece is given.*)
@@ -176,8 +190,9 @@ let rec place_bomb state =
     | Invalid -> raise InvalidPlacement
     | Valid new_state ->
       Display.print_start_turn new_state;
-      (check_win_condition new_state (Game_mechanics.get_player_turn state) 
-         (int_of_string col)); new_state 
+      let col_int = int_of_string col in
+      if Game_mechanics.num_pieces_in_col new_state col_int <= 0 then new_state 
+      else (check_win_of_each_player new_state col_int; new_state)
   end
   with
   | Failure _ -> 
