@@ -542,8 +542,7 @@ let is_ai_active state =
   state.ai_active
 
 let is_standard st = 
-  (st.num_players = 2 && st.rows = 7 && st.cols = 7 && st.connect_num = 4 
-   && st.game_mode = 1)
+  st.num_players = 2 && st.connect_num = 4 && st.game_mode = 1
 
 let toggle_ai state = if is_standard state then 
     Valid {state with ai_active = not (is_ai_active state)} else Invalid
