@@ -76,6 +76,7 @@ let print_player state =
   (ANSITerminal.(print_string [color] (String.concat "" 
                                          ["Player "; string_of_int curr_player;
                                           ", your move."]);));
+  print_newline ();
   print_newline ()
 
 let print_board state = 
@@ -88,7 +89,6 @@ let print_board state =
 let print_start_turn state =
   print_board state;
   print_player state;
-  print_newline ();
   if Game_mechanics.is_forced state then 
     let force_player = Game_mechanics.get_prev_player_turn state in 
     let force_color = List.nth (Game_mechanics.get_colors state) 

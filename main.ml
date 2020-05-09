@@ -396,7 +396,9 @@ and game_setup () =
     | Command.SinglePlayer -> single_player_start ()
     | Command.Settings -> settings_start ()
     | Command.Load object_phrase -> load_start object_phrase
-    | Command.Exit -> Display.pretty_print_string "Ok bye!"; exit_game();
+    | Command.Exit -> 
+      Display.pretty_print_string "Thanks for playing!"; 
+      exit_game();
     | _ -> raise Command.Malformed
   with
   | Command.Empty -> 
