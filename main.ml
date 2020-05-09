@@ -100,19 +100,25 @@ let save_handler state object_phrase =
                                    ", please try again."]);
     false 
 
-(** [check_win_condition state player col] checks to see if a game was won by
-    [player] after they made a move in column [col] in [state]. Prints and 
-    quits the game on a win or draw, and continues if the game is not over. *)
-let check_win_condition state player col = 
-  match (Game_mechanics.check_status state player col) with
+(** [check_win_condition state player col bomb] checks to see if a game was won
+    by [player] after they made a move in column [col] in [state]. If [bomb] is
+    true that means a bomb was placed at the entire column needs to be checked 
+    for wins. Prints and quits the game on a win or draw, and continues if the 
+    game is not over. *)
+let check_win_condition state player col bomb = 
+  let status = if bomb = true 
+    then Game_mechanics.check_status_bomb state player col
+    else Game_mechanics.check_status state player col in
+  match status with
   | Game_mechanics.Win win_player ->
     Display.print_board state;
     if Game_mechanics.is_ai_active state && player = 2 
     then (Display.pretty_print_string("Sorry, the Computer wins this round! \
                                        Better luck next time!");)
-    else (Display.pretty_print_string(String.concat "" ["Congrats Player "; 
-                                                        string_of_int win_player;
-                                                        ", you won!"]););
+    else (Display.pretty_print_string(String.concat "" 
+                                        ["Congrats Player "; 
+                                         string_of_int win_player;
+                                         ", you won!"]););
     exit_game ()
   | Game_mechanics.Draw ->
     Display.print_board state;
@@ -141,7 +147,7 @@ let place_piece state object_phrase player =
     let move_result = Game_mechanics.move state col piece in
     match move_result with
     | Game_mechanics.Valid new_state -> 
-      (check_win_condition new_state piece_player col);
+      (check_win_condition new_state piece_player col false);
       new_state
     | Game_mechanics.Invalid -> raise InvalidPlacement
   with
@@ -165,7 +171,7 @@ let place_piece state object_phrase player =
 let rec check_win_of_each_player_helper state player col =
   if player <= 0 then ()
   else ( 
-    check_win_condition state player col; 
+    check_win_condition state player col true; 
     check_win_of_each_player_helper state (player - 1) col)
 
 (** [check_win_of_each_player state col] checks if any players have won the 
@@ -190,10 +196,12 @@ let rec place_bomb state =
     match result with
     | Invalid -> raise InvalidPlacement
     | Valid new_state ->
-      Display.print_start_turn new_state;
       let col_int = int_of_string col in
-      if Game_mechanics.num_pieces_in_col new_state col_int <= 0 then new_state 
-      else (check_win_of_each_player new_state col_int; new_state)
+      if Game_mechanics.num_pieces_in_col new_state col_int <= 0 
+      then (Display.print_start_turn new_state; new_state)
+      else (check_win_of_each_player new_state col_int; 
+            Display.print_start_turn new_state; new_state)
+
   end
   with
   | Failure _ -> 

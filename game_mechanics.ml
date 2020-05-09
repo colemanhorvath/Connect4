@@ -398,12 +398,12 @@ and check_col_match column player count connect =
   | [] -> false
   | x :: xs -> let piece_num = get_piece_player x in 
     if piece_num = player then check_col_win xs player (count + 1) connect
-    else false
+    else check_col_win xs player 0 connect
 
-(** [check_col_bounds board player col connect max_cols] checks if there is 
+(** [check_col_bounds board player col max_cols connect] checks if there is 
     enough pieces in [col] of [board] for a match of [connect] pieces 
     so it can be checked for a win in [check_col_match]  *)
-let check_col_bounds board player col connect max_cols = 
+let check_col_bounds board player col max_cols connect = 
   if col >= max_cols then false 
   else 
     let column = List.nth board col in 
@@ -488,25 +488,49 @@ and check_diagonal_rl_bounds board row player col count inc last max_cols
     check_diagonal_rl_match board row player col count inc last max_cols 
       max_rows connect
 
-
 let check_win state player col =
   let col = col - 1 in
   let board = state.gameboard in
   let row = (List.nth board col |> List.length) - 1 in 
-  let first = (max (col - 3) 0)in 
-  let last = (min (col + 4) state.cols) in 
-  let rowbeginlr = (max (row - 3) 0) in
-  let colbegin = (max (col - 3) 0) in
+  let connect_num = state.connect_num in
+  let first = (max (col - connect_num - 1) 0)in 
+  let last = (min (col + connect_num) state.cols) in 
+  let rowbeginlr = (max (row - connect_num - 1) 0) in
+  let colbegin = (max (col - connect_num - 1) 0) in
   let startlr = (min (row - rowbeginlr) (col - colbegin)) in 
-  let rowbeginrl = (min (row + 3) (state.rows - 1)) in
+  let rowbeginrl = (min (row + connect_num - 1) (state.rows - 1)) in
   let startrl = (min (rowbeginrl - row) (col - colbegin)) in 
-  check_col_bounds board player col state.connect_num state.cols ||
+  check_col_bounds board player col state.cols connect_num ||
   check_row_bounds board row player first 0 last state.cols 
-    state.connect_num ||
+    connect_num ||
   check_diagonal_lr_bounds board (row - startlr) player 
-    (col - startlr) 0 0 7 state.cols state.rows state.connect_num ||
+    (col - startlr) 0 0 ((connect_num * 2) - 1) state.cols state.rows 
+    connect_num ||
   check_diagonal_rl_bounds board (row + startrl) player 
-    (col - startrl) 0 0 7 state.cols state.rows state.connect_num
+    (col - startrl) 0 0 ((connect_num * 2) - 1) state.cols state.rows 
+    connect_num
+
+let check_win_bomb state player col row =
+  let col = col - 1 in
+  let row = row - 1 in
+  let board = state.gameboard in
+  let connect_num = state.connect_num in
+  let first = (max (col - connect_num - 1) 0)in 
+  let last = (min (col + connect_num) state.cols) in 
+  let rowbeginlr = (max (row - connect_num - 1) 0) in
+  let colbegin = (max (col - connect_num - 1) 0) in
+  let startlr = (min (row - rowbeginlr) (col - colbegin)) in 
+  let rowbeginrl = (min (row + connect_num - 1) (state.rows - 1)) in
+  let startrl = (min (rowbeginrl - row) (col - colbegin)) in 
+  check_col_bounds board player col state.cols connect_num ||
+  check_row_bounds board row player first 0 last state.cols 
+    connect_num ||
+  check_diagonal_lr_bounds board (row - startlr) player 
+    (col - startlr) 0 0 ((connect_num * 2) - 1) state.cols state.rows 
+    connect_num ||
+  check_diagonal_rl_bounds board (row + startrl) player 
+    (col - startrl) 0 0 ((connect_num * 2) - 1) state.cols state.rows 
+    connect_num
 
 (** [rec check_draw_helper state board] is recursively true if the board is
     completely full of pieces, false otherwise. *)
@@ -519,9 +543,24 @@ let rec check_draw_helper state board =
 let check_draw state =
   check_draw_helper state state.gameboard
 
+let num_pieces_in_col state col = 
+  if col > state.cols || col <= 0 then -1 
+  else List.length (List.nth state.gameboard (col-1))
+
 let check_status state player col =
   if check_win state player col then Win player else
   if check_draw state then Draw else Play
+
+(** [check_status_bomb_helper state player col row] recursively checks each 
+    [row] in [col] to see if [player] has won in [state]. *)
+let rec check_status_bomb_helper state player col row = 
+  if row = 0 then Play
+  else if check_win_bomb state player col row then Win player
+  else check_status_bomb_helper state player col (row - 1)
+
+let check_status_bomb state player col = 
+  let row_len = num_pieces_in_col state col in
+  check_status_bomb_helper state player col row_len
 
 let get_dimensions state =
   (state.rows, state.cols)
@@ -547,6 +586,3 @@ let is_standard st =
 let toggle_ai state = if is_standard state then 
     Valid {state with ai_active = not (is_ai_active state)} else Invalid
 
-let num_pieces_in_col state col = 
-  if col > state.cols || col <= 0 then -1 
-  else List.length (List.nth state.gameboard (col-1))

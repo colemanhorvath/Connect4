@@ -112,14 +112,28 @@ val to_json_string: t -> string
     [player] from playing in column [col] and false otherwise *)
 val check_win : t -> int -> int -> bool
 
+(** [check_win_bomb state player col] is true if [state] has a win from player 
+    [player] from the piece in column [col] and row [row] false otherwise *)
+val check_win_bomb : t -> int -> int -> int -> bool
+
 (** [check_draw state] is true if the game board is full and nobody has won and 
     false otherwise *)
 val check_draw : t -> bool
+
+(** [num_pieces_in_col state col] is the number of pieces in the column of 
+    index [col] of [state]. If [col] is not a valid column number of [state], 
+    the result is -1. *)
+val num_pieces_in_col : t -> int -> int
 
 (** [check_status state player col] is a [status] representing if the game has 
     been won by [player] after placing a piece in column [col], if the game 
     has resulted in a draw, or if the game is still being played. *)
 val check_status: t -> int -> int -> status
+
+(** [check_status_bomb state player col] is a [status] representing if the game 
+    has been won by [player] by any of the pieces being shifted in [col] by the 
+    bomb, or if the game is still being played. *)
+val check_status_bomb: t -> int -> int -> status
 
 (** [get_dimensions state] is the dimensions of [state] as (row, col). *)
 val get_dimensions : t -> int * int
@@ -153,7 +167,3 @@ val is_standard : t -> bool
     active and Invalid if AI cannot be toggled.*)
 val toggle_ai : t -> move_result
 
-(** [num_pieces_in_col state col] is the number of pieces in the column of 
-    index [col] of [state]. If [col] is not a valid column number of [state], 
-    the result is -1. *)
-val num_pieces_in_col : t -> int -> int
