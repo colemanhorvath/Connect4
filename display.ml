@@ -108,9 +108,9 @@ let print_help state =
   print_endline("[print] - pretty prints the current board");
   print_endline("[hand] - displays list of special pieces in your hand \
                  (0 for all special pieces if playing regular Connect 4)");
+  print_endline("[place column] - places a normal piece on the board at \
+                 [column], starting at column 1");
   if Game_mechanics.get_gamemode state != 1 then (
-    print_endline("[place column] - places a normal piece on the board at \
-                   [column], starting at column 1");
     print_endline("[place bomb column] - places a bomb on the board at \
                    [column], starting at column 1. You will then be prompted \
                    for the row and column of the piece you want to remove");
@@ -126,15 +126,13 @@ let print_help state =
                    for any player's color and after placing it you will be \
                    prompted to place another piece"); )
   else if Game_mechanics.is_standard state then (
-    print_endline("[place column] - places a normal piece on the board at \
-                   [column], starting at column 1");
     print_endline("[toggle] - toggles AI Player 2. Only usable in a regular \
                    Connect 4 2 player game"); )
   else     
-    print_endline("[place column] - places a normal piece on the board at \
-                   [column], starting at column 1");
+    ();
   print_endline("[save filepath] - saves a json file of the current game \
                  state to [filepath]");
+  print_endline("[quit] - ends the game and returns to the main menu ");
   print_newline ()
 
 let print_hand state player =
