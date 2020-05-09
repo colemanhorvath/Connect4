@@ -32,7 +32,7 @@ let check_3s st =
   let cols = snd(get_dimensions st) in
   match player_3_in_a_row with 
   | Some col -> col
-  | None -> find_next_valid_move st (Random.int cols) ((cols + 1) / 2)
+  | None -> find_next_valid_move st ((cols + 1) / 2) ((cols + 1) / 2)
 
 let next_move st =
   let ai_win = winning_move st 2 1 in 
