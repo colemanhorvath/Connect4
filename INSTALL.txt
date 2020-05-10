@@ -9,6 +9,7 @@ Then do make play
 	-If you need more help, you can can always type “help” when playing our game 
 	-If you want to test the load feature you can use any of the test#.json files
 	that we provided (i.e. test3.json, some of the other jsons are incorrect jsons
-	that are used in testing and will fail to load in our game console). Our jsons
-	have both regular and special games, at both the beginning or middle of games,
-	or you can always save one of your own games and load that
+	that are used in testing and will give a failed to load message in our game 
+	console). Our jsons have both regular and special games, at both the beginning
+	or middle of games. You can also always save one of your own games and load 
+	that file.
