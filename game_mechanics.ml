@@ -17,27 +17,27 @@ exception InvalidRow of int
 
 exception InvalidPieceType of string
 
-(* num_players is the number of players in the game
-   rows is the number of rows in the gameboard
-   cols is the number of columns in the gameboard
-   gameboard is a board
-   player_turn is the current player's turn, starts at index 0 for player 1, 
-   1 for player 2, etc
-   connect_num is the number of pieces that need to be connected for a win, 
-   would be 4 for regular connect 4
-   colors is a list of all the colors the players have picked used for 
-   printing the gameboard piece colors, index 0 is the color of player 1, etc. 
-   game_mode is an int representing the 3 possible game modes:
-   1 is no special pieces, 2 is 1 of each special piece, 
-   3 is Random chance of receiving special pieces 
-   special pieces is a list of the numbers of special pieces each player has 
-   with the format [[num of anvils; wall; bomb; force];
-   [num of anvils; wall; bomb; force]; etc]
-   where index 0 is the special pieces player 1 has, etc.
-   is_player_forced is a true if the current player is forced to play their 
-   opponent's piece on their turn per the Force special piece, false otherwise. 
-   is_awaiting_bomb is true if the next move is the player playing a bomb, 
-   false otherwise.*)
+(** num_players is the number of players in the game
+    rows is the number of rows in the gameboard
+    cols is the number of columns in the gameboard
+    gameboard is a board
+    player_turn is the current player's turn, starts at index 0 for player 1, 
+    1 for player 2, etc
+    connect_num is the number of pieces that need to be connected for a win, 
+    would be 4 for regular connect 4
+    colors is a list of all the colors the players have picked used for 
+    printing the gameboard piece colors, index 0 is the color of player 1, etc. 
+    game_mode is an int representing the 3 possible game modes:
+    1 is no special pieces, 2 is 1 of each special piece, 
+    3 is Random chance of receiving special pieces 
+    special pieces is a list of the numbers of special pieces each player has 
+    with the format [[num of anvils; wall; bomb; force];
+    [num of anvils; wall; bomb; force]; etc]
+    where index 0 is the special pieces player 1 has, etc.
+    is_player_forced is a true if the current player is forced to play their 
+    opponent's piece on their turn per the Force special piece, false otherwise. 
+    is_awaiting_bomb is true if the next move is the player playing a bomb, 
+    false otherwise.*)
 type t = {
   num_players : int;
   rows : int;
@@ -109,10 +109,18 @@ let create_piece piece_type player =
   | "force" -> Force player
   | _ -> None
 
+(** [get_col board col_num] returns the column at position [col_num] in [board] 
+    or the empty list otherwise *)
+let get_col board col_num = 
+  match List.nth_opt board col_num with 
+  | Some col -> col
+  | None -> []
+
 (** [verify_placement board col rows] is false if placing a piece in a col,
     with col indexing starting at 0, that is full and true otherwise *)
 let verify_placement board col rows =
-  let col_length = List.nth board col |> List.length in
+  let col = get_col board col in
+  let col_length = col |> List.length in
   if col_length >= rows then false else true
 
 (** [update_board board col piece] is a board with the new [piece] added to the 
@@ -262,15 +270,24 @@ let get_prev_player_turn state =
   else state.player_turn
 
 let get_player_hand state player =
-  List.nth state.special_pieces (player - 1)
+  match List.nth_opt state.special_pieces (player - 1) with 
+  | Some lst -> lst
+  | None -> [0;0;0;0]
+
+(** [hand_match_helper hand index] returns the value at position [index] in 
+    [hand] or -1 otherwise *)
+let hand_match_helper hand index = 
+  match List.nth_opt hand index with 
+  | Some n -> n 
+  | None -> -1
 
 let get_num_of_piece_type state player piece_type =
   let hand = get_player_hand state player in
   match piece_type with
-  | "anvil" -> List.nth hand 0
-  | "wall" -> List.nth hand 1
-  | "bomb" -> List.nth hand 2
-  | "force" -> List.nth hand 3
+  | "anvil" -> hand_match_helper hand 0
+  | "wall" -> hand_match_helper hand 1
+  | "bomb" -> hand_match_helper hand 2
+  | "force" -> hand_match_helper hand 3
   | _ -> raise (InvalidPieceType piece_type)
 
 let format p = 
@@ -378,6 +395,13 @@ let get_piece_player p =
   | Force x -> x
   | None -> 10
 
+(** [get_piece col index] returns the piece at position [index] in [col] or the 
+    None piece otherwise *)
+let get_piece col index = 
+  match List.nth_opt col index with 
+  | Some piece -> piece
+  | None -> None
+
 (** [check_bounds row col max_rows max_cols] checks that row and col
     are within bounds of 0 and [max_rows] and 0 and [max_cols] respectively *)
 let check_bounds row col max_rows max_cols = 
@@ -406,17 +430,17 @@ and check_col_match column player count connect =
 let check_col_bounds board player col max_cols connect = 
   if col >= max_cols then false 
   else 
-    let column = List.nth board col in 
+    let column = get_col board col in
     if List.length column < connect
     then false else check_col_match column player 0 connect
 
 (** [check_row_match board row player col count last max_cols connect] checks 
     if there is a match of [connect] pieces for [player] in [row] *)
 let rec check_row_match board row player col count last max_cols connect = 
-  let col_len = (List.nth board col |> List.length) in 
+  let col_len = (get_col board col |> List.length) in 
   if col_len <= row 
   then check_row_bounds board row player (col + 1) 0 last max_cols connect
-  else let piece = List.nth (List.nth board col) (col_len - row - 1) in
+  else let piece = get_piece (get_col board col) (col_len - row - 1) in
     let piece_num = get_piece_player piece in
     if piece_num = player 
     then check_row_bounds board row player (col + 1) (count + 1) last 
@@ -436,11 +460,11 @@ and check_row_bounds board row player col count last max_cols connect =
     piece in the diagonal and making its way up the diagonal *)
 let rec check_diagonal_lr_match board row player col count inc last max_cols 
     max_rows connect = 
-  let col_len = (List.nth board col |> List.length) in 
+  let col_len = (get_col board col |> List.length) in 
   if col_len <= row 
   then check_diagonal_lr_bounds board (row + 1) player (col + 1) 0 (inc + 1) 
       last max_cols max_rows connect
-  else let piece = List.nth (List.nth board col) (col_len - row - 1) in
+  else let piece = get_piece (get_col board col) (col_len - row - 1) in
     let piece_num = get_piece_player piece in
     if piece_num = player 
     then check_diagonal_lr_bounds board (row + 1) player (col + 1) (count + 1) 
@@ -465,11 +489,11 @@ and check_diagonal_lr_bounds board row player col count inc last max_cols
     piece in the diagonal and making its way down the diagonal *)
 let rec check_diagonal_rl_match board row player col count inc last max_cols 
     max_rows connect =
-  let col_len = (List.nth board col |> List.length) in 
+  let col_len = (get_col board col |> List.length) in 
   if col_len <= row 
   then check_diagonal_rl_bounds board (row - 1) player (col + 1) 0 (inc + 1) 
       last max_cols max_rows connect
-  else let piece = List.nth (List.nth board col) (col_len - row - 1) in
+  else let piece = get_piece (get_col board col) (col_len - row - 1) in
     let piece_num = get_piece_player piece in
     if piece_num = player 
     then check_diagonal_rl_bounds board (row - 1) player (col + 1) (count + 1) 
@@ -491,7 +515,7 @@ and check_diagonal_rl_bounds board row player col count inc last max_cols
 let check_win state player col row =
   let col = col - 1 in
   let board = state.gameboard in
-  let row = if row = -1 then (List.nth board col |> List.length) - 1 
+  let row = if row = -1 then (get_col board col |> List.length) - 1 
     else row - 1 in 
   let connect_num = state.connect_num in
   let first = (max (col - connect_num - 1) 0)in 
@@ -524,7 +548,9 @@ let check_draw state =
 
 let num_pieces_in_col state col = 
   if col > state.cols || col <= 0 then -1 
-  else List.length (List.nth state.gameboard (col-1))
+  else 
+    let col = get_col state.gameboard (col - 1) in
+    List.length col
 
 let check_status state player col =
   if check_win state player col (-1) then Win player else

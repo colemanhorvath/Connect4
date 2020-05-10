@@ -70,9 +70,16 @@ let rec board_string st board row_index =
     print_newline ();
     row_string st board row_index
 
+(** [get_color colors index] is the color at position [index] in [colors] 
+    or the red style otherwise *) 
+let get_color colors index =
+  match List.nth_opt colors index with 
+  | Some c -> c
+  | None -> ANSITerminal.red
+
 let print_player state = 
   let curr_player = Game_mechanics.get_player_turn state in
-  let color = List.nth (Game_mechanics.get_colors state) (curr_player - 1) in
+  let color = get_color (Game_mechanics.get_colors state) (curr_player - 1) in
   (ANSITerminal.(print_string [color] (String.concat "" 
                                          ["Player "; string_of_int curr_player;
                                           ", your move."]);));
@@ -91,8 +98,8 @@ let print_start_turn state =
   print_player state;
   if Game_mechanics.is_forced state then 
     let force_player = Game_mechanics.get_prev_player_turn state in 
-    let force_color = List.nth (Game_mechanics.get_colors state) 
-        (force_player-1) in 
+    let force_color = 
+      get_color (Game_mechanics.get_colors state) (force_player - 1) in
     let force_warning = 
       String.concat "" [
         "You are currently placing one of Player "; 
@@ -137,12 +144,15 @@ let print_help state =
 
 let print_hand state player =
   print_newline ();
-  let player_pieces = Game_mechanics.get_player_hand state player in
   print_endline("Here are the pieces in your hand");
-  print_endline("anvils: " ^ string_of_int (List.nth player_pieces 0));
-  print_endline("walls: " ^ string_of_int (List.nth player_pieces 1));
-  print_endline("bombs: " ^ string_of_int (List.nth player_pieces 2));
-  print_endline("force pieces: " ^ string_of_int (List.nth player_pieces 3));
+  print_endline("anvils: " ^ string_of_int 
+                  (Game_mechanics.get_num_of_piece_type state player "anvil"));
+  print_endline("walls: " ^ string_of_int 
+                  (Game_mechanics.get_num_of_piece_type state player "wall"));
+  print_endline("bombs: " ^ string_of_int 
+                  (Game_mechanics.get_num_of_piece_type state player "bomb"));
+  print_endline("force pieces: " ^ string_of_int 
+                  (Game_mechanics.get_num_of_piece_type state player "force"));
   print_newline ()
 
 let pretty_print_string str =

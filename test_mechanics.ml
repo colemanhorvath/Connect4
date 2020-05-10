@@ -65,7 +65,7 @@ let make_win_test
     (expected_output: bool) = 
   let game_state = test_moves start_state moves_list in 
   name >:: (fun _ ->
-      assert_equal (check_win game_state player col) expected_output)
+      assert_equal (check_win game_state player col (-1)) expected_output)
 
 (** [make_draw_test name start_state moves_list expected_output] 
     makes an OUnit test named [name] where the moves in [moves_list] are made
@@ -126,7 +126,7 @@ let make_special_win_test
     (expected_output: bool) = 
   let game_state = test_special_moves start_state moves_list in 
   name >:: (fun _ ->
-      assert_equal (check_win game_state player col) expected_output)
+      assert_equal (check_win game_state player col (-1)) expected_output)
 
 
 (** used for printing, same as test_special_moves *)
@@ -146,7 +146,7 @@ let make_special_win_test2
     (expected_output: bool) = 
   let game_state = test_special_moves2 start_state moves_list in 
   name >:: (fun _ ->
-      assert_equal (check_win game_state player col) expected_output)
+      assert_equal (check_win game_state player col (-1)) expected_output)
 
 (** [rec check_pieces_equal p1 p2] is true if the pieces [p1] and [p2] are the 
     same type and same player number. *)
