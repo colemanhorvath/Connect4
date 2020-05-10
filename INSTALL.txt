@@ -1,5 +1,12 @@
+To install the packages required for our game (yojson and ANSITerminal):
+	- opam install yojson
+	- opam install ANSITerminal
+
 To play our Connect 4 game:
 
 First do make build
 Then do make play
 	-If you need more help, you can can always type “help” when playing our game 
+	-If you want to test the load feature you can use any of the test jsons that 
+	we provided, which have both regular and special games, or save one of your 
+	own games and load that
