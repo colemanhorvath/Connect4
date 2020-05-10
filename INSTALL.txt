@@ -7,6 +7,8 @@ To play our Connect 4 game:
 First do make build
 Then do make play
 	-If you need more help, you can can always type “help” when playing our game 
-	-If you want to test the load feature you can use any of the test jsons that 
-	we provided, which have both regular and special games, or save one of your 
-	own games and load that
+	-If you want to test the load feature you can use any of the test#.json files
+	that we provided (i.e. test3.json, some of the other jsons are incorrect jsons
+	that are used in testing), which have both regular and special games, at both
+	the beginning or middle of games,	or you can always save one of your own games
+	and load that

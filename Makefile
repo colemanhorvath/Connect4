@@ -30,7 +30,7 @@ play:
 	$(OCAMLBUILD) $(MAIN) && ./$(MAIN)
 
 zip:
-	zip connect4.zip *.ml* *.json INSTALL.txt _tags Makefile
+	zip connect4.zip *.ml* *.json INSTALL.txt README.md _tags Makefile
 
 docs: docs-public docs-private
 	
